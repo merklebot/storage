@@ -48,3 +48,13 @@ async def update_content(content_id: int, content_in: schemas.ContentUpdate):
     content.update(content_in.dict())
     db[content_id] = content
     return content
+
+
+@router.delete("/{content_id}", response_model=schemas.Content)
+async def delete_content(content_id: int):
+    print(f"delete_content, {content_id=}")
+    if content_id not in db:
+        raise HTTPException(status_code=404, detail="Content not found")
+    content = db[content_id]
+    del db[content_id]
+    return content

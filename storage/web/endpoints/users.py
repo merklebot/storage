@@ -43,3 +43,13 @@ async def update_user(user_id: int, user_in: schemas.UserUpdate):
     user.update(user_in.dict())
     db[user_id] = user
     return user
+
+
+@router.delete("/{user_id}", response_model=schemas.User)
+async def delete_user(user_id: int):
+    print(f"delete_user, {user_id=}, {db=}")
+    if user_id not in db:
+        raise HTTPException(status_code=404, detail="User not found")
+    user = db[user_id]
+    del db[user_id]
+    return user
