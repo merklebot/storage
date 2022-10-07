@@ -107,6 +107,17 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "pydantic-partial"
+version = "0.3.3"
+description = "Create partial models from your pydantic models. Partial models may allow None for certain or all fields."
+category = "main"
+optional = false
+python-versions = ">=3.9,<4.0"
+
+[package.dependencies]
+pydantic = ">=1.9.0,<2.0.0"
+
+[[package]]
 name = "pyhumps"
 version = "3.7.3"
 description = "🐫  Convert strings (and dictionary keys) between snake case, camel case and pascal case in Python. Inspired by Humps for Node"
@@ -239,7 +250,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "914fa392f8450413b95b3070c0939c6423cc7395c6c8b49aec8b55504be2f055"
+content-hash = "73f1874071026fecfa48afe6a0bd54a7b7407f70c0a33550fef2dc7ae44d6be2"
 
 [metadata.files]
 anyio = [
@@ -349,6 +360,10 @@ pydantic = [
     {file = "pydantic-1.10.2-cp39-cp39-win_amd64.whl", hash = "sha256:c1ba1afb396148bbc70e9eaa8c06c1716fdddabaf86e7027c5988bae2a829ab6"},
     {file = "pydantic-1.10.2-py3-none-any.whl", hash = "sha256:1b6ee725bd6e83ec78b1aa32c5b1fa67a3a65badddde3976bca5fe4568f27709"},
     {file = "pydantic-1.10.2.tar.gz", hash = "sha256:91b8e218852ef6007c2b98cd861601c6a09f1aa32bbbb74fab5b1c33d4a1e410"},
+]
+pydantic-partial = [
+    {file = "pydantic-partial-0.3.3.tar.gz", hash = "sha256:716b3e84b9c1ae392a1e9c6e8605e054b5d17f1a39dbe48ea3952d03098bb010"},
+    {file = "pydantic_partial-0.3.3-py3-none-any.whl", hash = "sha256:7b5a685082ccfa38c6c1935ad9cebd3d2a79411aa4876de4b8e485f3c548ff17"},
 ]
 pyhumps = [
     {file = "pyhumps-3.7.3-py3-none-any.whl", hash = "sha256:8cf9503f71be250a1ec2c0af997309e6360ad4daa343acd7faafde54cce36469"},
