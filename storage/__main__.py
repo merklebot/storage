@@ -14,4 +14,4 @@ if __name__ == "__main__":
         allow_headers=["*"],
     )
     app.include_router(api_router)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, root_path="/storage")
