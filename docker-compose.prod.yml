@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  storage:
+    image: ghcr.io/merklebot/storage:main
+    networks:
+      - internal
+    deploy:
+      labels:
+        - traefik.http.routers.storage.entrypoints=websecure
+        - traefik.http.routers.storage.rule=Host(`api2.merklebot.com`) && PathPrefix(`${SERVER_ROOT_PATH}`)
+        - traefik.http.routers.storage.tls=true
+        - traefik.http.routers.storage.tls.certresolver=letsencrypt
+        - traefik.http.services.storage.loadbalancer.server.port=${SERVER_PORT}
+        - traefik.http.middlewares.strip-storage.stripprefix.prefixes=${SERVER_ROOT_PATH}
+        - traefik.http.routers.storage.middlewares=strip-storage@docker
+
+networks:
+  internal:
+    external: true # externally created

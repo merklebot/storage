@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  storage:
+    build: .
+    volumes:
+      - ./storage:/storage/storage
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
