@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     SERVER_PORT: int
     SERVER_ROOT_PATH: str = ""
 
+    LOGURU_LEVEL: str = "INFO"
+
     class Config:
         case_sensitive = True
 
