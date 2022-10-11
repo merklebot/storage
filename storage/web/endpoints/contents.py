@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile
 from fastapi.exceptions import HTTPException
 
+from storage.logging import log
 from storage.web.schemas import content as schemas
 
 router = APIRouter()
@@ -11,13 +12,13 @@ db = {}
 
 @router.get("/", response_model=list[schemas.Content])
 async def read_contents():
-    print("read_contents")
+    log.debug("read_contents")
     return list(db.values())
 
 
 @router.post("/", response_model=schemas.Content)
 async def create_upload_content(content_in: UploadFile):
-    print(f"create_content, {content_in.filename=}")
+    log.debug(f"create_content, {content_in.filename=}")
     content = schemas.Content(
         id=max(db.keys()) + 1 if db.keys() else 0,
         filename=content_in.filename,
@@ -32,7 +33,7 @@ async def create_upload_content(content_in: UploadFile):
 
 @router.get("/{content_id}", response_model=schemas.Content)
 async def read_content_by_id(content_id: int):
-    print(f"read_content_by_id, {content_id=}")
+    log.debug(f"read_content_by_id, {content_id=}")
     try:
         return db[content_id]
     except KeyError:
@@ -41,7 +42,7 @@ async def read_content_by_id(content_id: int):
 
 @router.patch("/{content_id}", response_model=schemas.Content)
 async def update_content(content_id: int, content_in: schemas.ContentUpdate):
-    print(f"update_content, {content_id=}, {content_in=}")
+    log.debug(f"update_content, {content_id=}, {content_in=}")
     if content_id not in db:
         raise HTTPException(status_code=404, detail="Content not found")
     content = db[content_id]
@@ -52,7 +53,7 @@ async def update_content(content_id: int, content_in: schemas.ContentUpdate):
 
 @router.delete("/{content_id}", response_model=schemas.Content)
 async def delete_content(content_id: int):
-    print(f"delete_content, {content_id=}")
+    log.debug(f"delete_content, {content_id=}")
     if content_id not in db:
         raise HTTPException(status_code=404, detail="Content not found")
     content = db[content_id]

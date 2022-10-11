@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status
 from fastapi.exceptions import HTTPException
 
+from storage.logging import log
 from storage.web.schemas import permission as schemas
 
 router = APIRouter()
@@ -18,7 +19,7 @@ async def read_permissions():
     "/", response_model=schemas.Permission, status_code=status.HTTP_201_CREATED
 )
 async def create_permission(permission_in: schemas.PermissionCreate):
-    print(f"create_permission, {permission_in=}")
+    log.debug(f"create_permission, {permission_in=}")
     permission = schemas.Permission(
         id=max(db.keys()) + 1 if db.keys() else 0,
         **permission_in.dict(),
@@ -29,7 +30,7 @@ async def create_permission(permission_in: schemas.PermissionCreate):
 
 @router.get("/{permission_id}", response_model=schemas.Permission)
 async def read_permission_by_id(permission_id: int):
-    print(f"read_permission_by_id, {permission_id=}")
+    log.debug(f"read_permission_by_id, {permission_id=}")
     try:
         return db[permission_id]
     except KeyError:
@@ -40,11 +41,11 @@ async def read_permission_by_id(permission_id: int):
 async def update_permission(
     permission_id: int, permission_in: schemas.PermissionUpdate
 ):
-    print(f"update_permission, {permission_id=}, {permission_in=}")
+    log.debug(f"update_permission, {permission_id=}, {permission_in=}")
     if permission_id not in db:
         raise HTTPException(status_code=404, detail="Permission not found")
     permission = db[permission_id]
-    print(permission)
+    log.debug(permission)
     permission.update({k: v for k, v in permission_in.dict().items() if v is not None})
     db[permission_id] = permission
     return permission

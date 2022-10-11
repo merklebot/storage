@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 
+from storage.logging import log
 from storage.web.schemas import user as schemas
 
 router = APIRouter()
@@ -16,7 +17,7 @@ async def read_users():
 
 @router.post("/", response_model=schemas.User)
 async def create_user(user_in: schemas.UserCreate):
-    print(f"create_user, {user_in=}")
+    log.debug(f"create_user, {user_in=}")
     user = schemas.User(
         id=max(db.keys()) + 1 if db.keys() else 0,
         **user_in.dict(),
@@ -27,7 +28,7 @@ async def create_user(user_in: schemas.UserCreate):
 
 @router.get("/{user_id}", response_model=schemas.User)
 async def read_user_by_id(user_id: int):
-    print(f"read_user_by_id, {user_id=}")
+    log.debug(f"read_user_by_id, {user_id=}")
     try:
         return db[user_id]
     except KeyError:
@@ -36,7 +37,7 @@ async def read_user_by_id(user_id: int):
 
 @router.put("/{user_id}", response_model=schemas.User)
 async def update_user(user_id: int, user_in: schemas.UserUpdate):
-    print(f"update_user, {user_id=}, {user_in=}")
+    log.debug(f"update_user, {user_id=}, {user_in=}")
     if user_id not in db:
         raise HTTPException(status_code=404, detail="User not found")
     user = db[user_id]
@@ -47,7 +48,7 @@ async def update_user(user_id: int, user_in: schemas.UserUpdate):
 
 @router.delete("/{user_id}", response_model=schemas.User)
 async def delete_user(user_id: int):
-    print(f"delete_user, {user_id=}, {db=}")
+    log.debug(f"delete_user, {user_id=}, {db=}")
     if user_id not in db:
         raise HTTPException(status_code=404, detail="User not found")
     user = db[user_id]

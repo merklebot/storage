@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 
+from storage.logging import log
 from storage.web.schemas import tenant as schemas
 
 router = APIRouter()
@@ -16,7 +17,7 @@ async def read_tenants():
 
 @router.post("/", response_model=schemas.Tenant)
 async def create_tenant(tenant_in: schemas.TenantCreate):
-    print(f"create_tenant, {tenant_in=}")
+    log.debug(f"create_tenant, {tenant_in=}")
     tenant = schemas.Tenant(
         id=max(db.keys()) + 1 if db.keys() else 0,
         **tenant_in.dict(),
@@ -27,7 +28,7 @@ async def create_tenant(tenant_in: schemas.TenantCreate):
 
 @router.get("/{tenant_id}", response_model=schemas.Tenant)
 async def read_tenant_by_id(tenant_id: int):
-    print(f"read_tenant_by_id, {tenant_id=}")
+    log.debug(f"read_tenant_by_id, {tenant_id=}")
     try:
         return db[tenant_id]
     except KeyError:
@@ -36,7 +37,7 @@ async def read_tenant_by_id(tenant_id: int):
 
 @router.put("/{tenant_id}", response_model=schemas.Tenant)
 async def update_tenant(tenant_id: int, tenant_in: schemas.TenantUpdate):
-    print(f"update_tenant, {tenant_id=}, {tenant_in=}")
+    log.debug(f"update_tenant, {tenant_id=}, {tenant_in=}")
     if tenant_id not in db:
         raise HTTPException(status_code=404, detail="Tenant not found")
     tenant = db[tenant_id]
