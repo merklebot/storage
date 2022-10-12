@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SERVER_ROOT_PATH: str = ""
 
     LOGURU_LEVEL: str = "INFO"
+    IPFS_HTTP_PROVIDER: AnyHttpUrl
 
     class Config:
         case_sensitive = True

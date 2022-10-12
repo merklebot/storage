@@ -1,6 +1,8 @@
+import httpx
 from fastapi import APIRouter, UploadFile
 from fastapi.exceptions import HTTPException
 
+from storage.config import settings
 from storage.logging import log
 from storage.web.schemas import content as schemas
 
@@ -19,15 +21,25 @@ async def read_contents():
 @router.post("/", response_model=schemas.Content)
 async def create_upload_content(content_in: UploadFile):
     log.debug(f"create_content, {content_in.filename=}")
+
+    async with httpx.AsyncClient(
+        base_url=settings.IPFS_HTTP_PROVIDER,
+    ) as client:
+        response = await client.post(
+            "/api/v0/add", files={"upload-files": content_in.file}
+        )
+
     content = schemas.Content(
         id=max(db.keys()) + 1 if db.keys() else 0,
         filename=content_in.filename,
-        ipfs_cid="",
+        ipfs_cid=response.json()["Hash"],
         encryption_key="",
         owner_id=1,
         specification_id=1,
     )
+
     db[content.id] = content.dict()
+
     return content
 
 
