@@ -1,6 +1,12 @@
+import asyncio
+import tempfile
+from urllib.parse import urlparse
+
 import httpx
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, UploadFile, status
 from fastapi.exceptions import HTTPException
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from storage.config import settings
 from storage.logging import log
@@ -71,3 +77,36 @@ async def delete_content(content_id: int):
     content = db[content_id]
     del db[content_id]
     return content
+
+
+@router.get("/{content_id}/{filename}")
+async def download_content_by_filename(content_id: int, filename: str):
+    log.debug(f"download_content_by_filename, {content_id=}, {filename=}")
+
+    metadata = await read_content_by_id(content_id)
+    if metadata["filename"] != filename:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
+        )
+
+    cid = metadata["ipfs_cid"]
+    fd = tempfile.NamedTemporaryFile()
+    ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
+    host, port = ipfs_provider_url.hostname, ipfs_provider_url.port
+    proc = await asyncio.create_subprocess_shell(
+        f"ipfs --api /dns4/{host}/tcp/{port} get -o {fd.name} {cid}",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    if proc.returncode:
+        log.error(f"{stdout=}, {stderr=}, {fd.name=}, {proc.returncode=}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="IPFS provider failure",
+        )
+    log.debug(f"{stdout=}, {stderr=}, {fd.name=}")
+
+    return FileResponse(
+        fd.name, filename=metadata["filename"], background=BackgroundTask(fd.close)
+    )

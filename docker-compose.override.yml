@@ -7,3 +7,5 @@ services:
       - ./storage:/storage/storage
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
+  kubo-ipfs:
+    image: ipfs/kubo:v0.15.0
