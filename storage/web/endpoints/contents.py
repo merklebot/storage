@@ -100,7 +100,11 @@ async def download_content_by_filename(
 ):
     log.debug(f"download_content_by_filename, {content_id=}, {filename=}")
 
-    metadata = await read_content_by_id(content_id=content_id)
+    try:
+        metadata = db["contents"][content_id]
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Content not found")
+
     if metadata["filename"] != filename:
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
