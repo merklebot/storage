@@ -3,29 +3,34 @@ import tempfile
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import APIRouter, UploadFile, status
+from fastapi import APIRouter, Depends, UploadFile, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
 from storage.logging import log
+from storage.web import deps
 from storage.web.schemas import content as schemas
 
 router = APIRouter()
 
 
-db = {}
-
-
 @router.get("/", response_model=list[schemas.Content])
-async def read_contents():
+async def read_contents(
+    *,
+    db: dict = Depends(deps.get_db),
+):
     log.debug("read_contents")
-    return list(db.values())
+    return list(db["contents"].values())
 
 
 @router.post("/", response_model=schemas.Content)
-async def create_upload_content(content_in: UploadFile):
+async def create_upload_content(
+    *,
+    db: dict = Depends(deps.get_db),
+    content_in: UploadFile,
+):
     log.debug(f"create_content, {content_in.filename=}")
 
     async with httpx.AsyncClient(
@@ -36,7 +41,7 @@ async def create_upload_content(content_in: UploadFile):
         )
 
     content = schemas.Content(
-        id=max(db.keys()) + 1 if db.keys() else 0,
+        id=max(db["contents"].keys()) + 1 if db["contents"].keys() else 0,
         filename=content_in.filename,
         ipfs_cid=response.json()["Hash"],
         encryption_key="",
@@ -44,46 +49,58 @@ async def create_upload_content(content_in: UploadFile):
         specification_id=1,
     )
 
-    db[content.id] = content.dict()
+    db["contents"][content.id] = content.dict()
 
     return content
 
 
 @router.get("/{content_id}", response_model=schemas.Content)
-async def read_content_by_id(content_id: int):
+async def read_content_by_id(
+    *,
+    db: dict = Depends(deps.get_db),
+    content_id: int,
+):
     log.debug(f"read_content_by_id, {content_id=}")
+
     try:
-        return db[content_id]
+        return db["contents"][content_id]
     except KeyError:
         raise HTTPException(status_code=404, detail="Content not found")
 
 
 @router.patch("/{content_id}", response_model=schemas.Content)
-async def update_content(content_id: int, content_in: schemas.ContentUpdate):
+async def update_content(
+    *,
+    db: dict = Depends(deps.get_db),
+    content_id: int,
+    content_in: schemas.ContentUpdate,
+):
     log.debug(f"update_content, {content_id=}, {content_in=}")
-    if content_id not in db:
+    if content_id not in db["contents"]:
         raise HTTPException(status_code=404, detail="Content not found")
-    content = db[content_id]
+    content = db["contents"][content_id]
     content.update(content_in.dict())
-    db[content_id] = content
+    db["contents"][content_id] = content
     return content
 
 
 @router.delete("/{content_id}", response_model=schemas.Content)
-async def delete_content(content_id: int):
+async def delete_content(*, db: dict = Depends(deps.get_db), content_id: int):
     log.debug(f"delete_content, {content_id=}")
-    if content_id not in db:
+    if content_id not in db["contents"]:
         raise HTTPException(status_code=404, detail="Content not found")
-    content = db[content_id]
-    del db[content_id]
+    content = db["contents"][content_id]
+    del db["contents"][content_id]
     return content
 
 
 @router.get("/{content_id}/{filename}")
-async def download_content_by_filename(content_id: int, filename: str):
+async def download_content_by_filename(
+    *, db: dict = Depends(deps.get_db), content_id: int, filename: str
+):
     log.debug(f"download_content_by_filename, {content_id=}, {filename=}")
 
-    metadata = await read_content_by_id(content_id)
+    metadata = await read_content_by_id(content_id=content_id)
     if metadata["filename"] != filename:
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
