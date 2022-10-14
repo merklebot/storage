@@ -94,7 +94,7 @@ async def delete_content(*, db: dict = Depends(deps.get_db), content_id: int):
     return content
 
 
-@router.get("/{content_id}/{filename}")
+@router.get("/{content_id}/files/{filename}")
 async def download_content_by_filename(
     *, db: dict = Depends(deps.get_db), content_id: int, filename: str
 ):
