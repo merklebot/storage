@@ -5,6 +5,8 @@ from storage.logging import log
 from storage.web import deps
 from storage.web.schemas import job as schemas
 
+from storage.services.custody import custody
+
 router = APIRouter()
 
 
@@ -23,7 +25,15 @@ async def create_job(*, db: dict = Depends(deps.get_db), job_in: schemas.JobCrea
         id=max(db["jobs"].keys()) + 1 if db["jobs"].keys() else 0,
         **job_in.dict(),
     )
+
     db["jobs"][job.id] = job.dict()
+    if job.kind == "encryption":
+        log.debug(f"start content {job.content_id} encryption")
+        await custody.start_content_encryption(job.content_id, job.id)
+    elif job.kind == "decryption":
+        log.debug(f"start content {job.content_id} decryption")
+        await custody.start_content_decryption(job.content_id, job.id)
+
     return job
 
 
@@ -32,6 +42,18 @@ async def read_job_by_id(*, db: dict = Depends(deps.get_db), job_id: int):
     log.debug(f"read_job_by_id, {job_id=}")
     try:
         return db["jobs"][job_id]
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+
+@router.get("/{job_id}/webhooks/finish", response_model=schemas.Job)
+async def mark_job_finished(*, db: dict = Depends(deps.get_db), job_id: int):
+    log.debug(f"read_job_by_id, {job_id=}")
+    try:
+        job = db["jobs"][job_id]
+        job.update({'status': 'finished'})
+        db["jobs"][job_id] = job
+        return job
     except KeyError:
         raise HTTPException(status_code=404, detail="Job not found")
 

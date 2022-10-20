@@ -6,6 +6,7 @@ from pydantic_partial import create_partial_model
 class JobBase(BaseModel):
     tenant_id: int
     kind: str
+    content_id: int
     status: str | None = "created"
     on_status_update: AnyHttpUrl | None = None
 

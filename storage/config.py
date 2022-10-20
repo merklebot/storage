@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     LOGURU_LEVEL: str = "INFO"
     IPFS_HTTP_PROVIDER: AnyHttpUrl
 
+    CUSTODY_URL: str
+    CUSTODY_API_KEY: str
+
+    SELF_URL: str
+
     class Config:
         case_sensitive = True
 
