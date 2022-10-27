@@ -4,4 +4,4 @@ services:
   storage:
     env_file: .env
     command:
-      - "/storage/storage/start.sh"
+      - "/storage/start.sh"
