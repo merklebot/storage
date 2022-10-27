@@ -31,10 +31,10 @@ async def create_content(
     content_create: schemas.ContentCreate,
     db: dict = Depends(deps.get_db),
 ):
-    log.debug(f"create_content, {content_create.url}")
-    filename = content_create.url.split("/")[-1]
+    log.debug(f"create_content, {content_create.origin_url}")
+    filename = content_create.origin_url.split("/")[-1]
     async with httpx.AsyncClient() as client:
-        r = await client.get(content_create.url)
+        r = await client.get(content_create.origin_url)
         content_file = io.BytesIO(r.content)
     async with httpx.AsyncClient(
         base_url=settings.IPFS_HTTP_PROVIDER,
