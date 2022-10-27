@@ -11,7 +11,7 @@ class ContentBase(BaseModel):
 
 class ContentCreate(ContentBase):
     method: str | None = "external"
-    url: AnyHttpUrl
+    origin_url: AnyHttpUrl
 
 
 class ContentUpdate(ContentBase):

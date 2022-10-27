@@ -27,7 +27,7 @@ async def read_contents(
 
 
 @router.post("/", response_model=schemas.Content)
-async def create_upload_content(
+async def create_content(
     content_create: schemas.ContentCreate,
     db: dict = Depends(deps.get_db),
 ):
