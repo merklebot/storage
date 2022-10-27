@@ -9,7 +9,8 @@ class ContentBase(BaseModel):
 
 
 class ContentCreate(ContentBase):
-    pass
+    method: str | None = "external"
+    url: str
 
 
 class ContentUpdate(ContentBase):

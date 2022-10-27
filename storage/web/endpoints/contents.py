@@ -1,9 +1,10 @@
 import asyncio
+import io
 import tempfile
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import APIRouter, Depends, UploadFile, status
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
@@ -27,22 +28,24 @@ async def read_contents(
 
 @router.post("/", response_model=schemas.Content)
 async def create_upload_content(
-    *,
+    content_create: schemas.ContentCreate,
     db: dict = Depends(deps.get_db),
-    content_in: UploadFile,
 ):
-    log.debug(f"create_content, {content_in.filename=}")
-
+    log.debug(f"create_content, {content_create.url}")
+    filename = content_create.url.split("/")[-1]
+    async with httpx.AsyncClient() as client:
+        r = await client.get(content_create.url)
+        content_file = io.BytesIO(r.content)
     async with httpx.AsyncClient(
         base_url=settings.IPFS_HTTP_PROVIDER,
     ) as client:
         response = await client.post(
-            "/api/v0/add", files={"upload-files": content_in.file}
+            "/api/v0/add", files={"upload-files": content_file}
         )
 
     content = schemas.Content(
         id=max(db["contents"].keys()) + 1 if db["contents"].keys() else 0,
-        filename=content_in.filename,
+        filename=filename,
         ipfs_cid=response.json()["Hash"],
         encryption_key="",
         owner_id=1,
