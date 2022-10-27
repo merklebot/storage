@@ -13,4 +13,3 @@ WORKDIR /storage
 COPY --from=requirements-stage /tmp/requirements.txt /storage/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /storage/requirements.txt
 COPY storage /storage/storage
-CMD ["python", "-m", "storage"]
