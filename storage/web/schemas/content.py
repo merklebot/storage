@@ -1,4 +1,5 @@
 from fastapi_camelcase import CamelModel as BaseModel
+from pydantic import AnyHttpUrl
 
 
 class ContentBase(BaseModel):
@@ -10,7 +11,7 @@ class ContentBase(BaseModel):
 
 class ContentCreate(ContentBase):
     method: str | None = "external"
-    url: str
+    url: AnyHttpUrl
 
 
 class ContentUpdate(ContentBase):
