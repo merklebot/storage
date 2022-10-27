@@ -4,6 +4,7 @@ services:
   storage:
     image: ghcr.io/merklebot/storage:main
     networks:
+      - bridge
       - internal
     deploy:
       labels:
@@ -18,3 +19,5 @@ services:
 networks:
   internal:
     external: true # externally created
+  bridge:
+    external: true
