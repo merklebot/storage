@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
+from storage.services.custody import custody
 from storage.web import deps
 from storage.web.schemas import job as schemas
-
-from storage.services.custody import custody
 
 router = APIRouter()
 
@@ -51,7 +50,7 @@ async def mark_job_finished(*, db: dict = Depends(deps.get_db), job_id: int):
     log.debug(f"read_job_by_id, {job_id=}")
     try:
         job = db["jobs"][job_id]
-        job.update({'status': 'finished'})
+        job.update({"status": "finished"})
         db["jobs"][job_id] = job
         return job
     except KeyError:
