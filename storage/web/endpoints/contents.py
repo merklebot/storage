@@ -47,9 +47,8 @@ async def create_content(
         id=max(db["contents"].keys()) + 1 if db["contents"].keys() else 0,
         filename=filename,
         ipfs_cid=response.json()["Hash"],
-        encryption_key="",
-        owner_id=1,
-        specification_id=1,
+        encryption_key_id="",
+        owner_id=content_create.owner_id,
     )
 
     db["contents"][content.id] = content.dict()
