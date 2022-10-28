@@ -5,3 +5,11 @@ services:
     env_file: .env
     command:
       - "/storage/start.sh"
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_SERVER
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB

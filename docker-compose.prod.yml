@@ -16,6 +16,20 @@ services:
         - traefik.http.middlewares.strip-storage.stripprefix.prefixes=${SERVER_ROOT_PATH}
         - traefik.http.routers.storage.middlewares=strip-storage@docker
 
+  db:
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    deploy:
+      placement:
+        constraints:
+          - node.labels.postgres == true
+
+volumes:
+  postgres:
+    external: true
+
 networks:
   internal:
     external: true # externally created
