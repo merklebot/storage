@@ -2,6 +2,7 @@ import argparse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from tenacity import retry, stop_after_attempt, wait_fixed
 from uvicorn import Config, Server
 
 from storage import db
@@ -14,7 +15,11 @@ from storage.web.api import api_router
 def pre_start():
     log.info("initializing")
     session = SessionLocal()
-    db.try_connect(session)
+    retry_db_connect = retry(
+        stop=stop_after_attempt(60),  # one minute
+        wait=wait_fixed(1),
+    )(db.try_connect)
+    retry_db_connect(session)
     db.ensure_exists(engine)
     log.info("initialization complete")
 
