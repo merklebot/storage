@@ -96,6 +96,37 @@ async def delete_content(*, db: dict = Depends(deps.get_db), content_id: int):
     return content
 
 
+@router.get("/{content_id}/download")
+async def download_content_file(*, db: dict = Depends(deps.get_db), content_id: int):
+    log.debug(f"download_content_file, {content_id=}")
+    try:
+        metadata = db["contents"][content_id]
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    cid = metadata["ipfs_cid"]
+    fd = tempfile.NamedTemporaryFile()
+    ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
+    host, port = ipfs_provider_url.hostname, ipfs_provider_url.port
+    proc = await asyncio.create_subprocess_shell(
+        f"ipfs --api /dns4/{host}/tcp/{port} get -o {fd.name} {cid}",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    if proc.returncode:
+        log.error(f"{stdout=}, {stderr=}, {fd.name=}, {proc.returncode=}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="IPFS provider failure",
+        )
+    log.debug(f"{stdout=}, {stderr=}, {fd.name=}")
+
+    return FileResponse(
+        fd.name, filename=metadata["filename"], background=BackgroundTask(fd.close)
+    )
+
+
 @router.get("/{content_id}/files/{filename}")
 async def download_content_by_filename(
     *, db: dict = Depends(deps.get_db), content_id: int, filename: str
