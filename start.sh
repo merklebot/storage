@@ -2,4 +2,6 @@
 
 python -m storage --pre-start
 
+alembic upgrade head
+
 python -m storage
