@@ -12,13 +12,15 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Job])
 async def read_jobs(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
 ):
     return list(db["jobs"].values())
 
 
 @router.post("/", response_model=schemas.Job, status_code=status.HTTP_201_CREATED)
-async def create_job(*, db: dict = Depends(deps.get_db), job_in: schemas.JobCreate):
+async def create_job(
+    *, db: dict = Depends(deps.get_fake_db), job_in: schemas.JobCreate
+):
     log.debug(f"create_job, {job_in=}")
     job = schemas.Job(
         id=max(db["jobs"].keys()) + 1 if db["jobs"].keys() else 0,
@@ -37,7 +39,7 @@ async def create_job(*, db: dict = Depends(deps.get_db), job_in: schemas.JobCrea
 
 
 @router.get("/{job_id}", response_model=schemas.Job)
-async def read_job_by_id(*, db: dict = Depends(deps.get_db), job_id: int):
+async def read_job_by_id(*, db: dict = Depends(deps.get_fake_db), job_id: int):
     log.debug(f"read_job_by_id, {job_id=}")
     try:
         return db["jobs"][job_id]
@@ -46,7 +48,7 @@ async def read_job_by_id(*, db: dict = Depends(deps.get_db), job_id: int):
 
 
 @router.get("/{job_id}/webhooks/finish", response_model=schemas.Job)
-async def mark_job_finished(*, db: dict = Depends(deps.get_db), job_id: int):
+async def mark_job_finished(*, db: dict = Depends(deps.get_fake_db), job_id: int):
     log.debug(f"read_job_by_id, {job_id=}")
     try:
         job = db["jobs"][job_id]
@@ -59,7 +61,7 @@ async def mark_job_finished(*, db: dict = Depends(deps.get_db), job_id: int):
 
 @router.patch("/{job_id}", response_model=schemas.Job)
 async def update_job(
-    *, db: dict = Depends(deps.get_db), job_id: int, job_in: schemas.JobUpdate
+    *, db: dict = Depends(deps.get_fake_db), job_id: int, job_in: schemas.JobUpdate
 ):
     log.debug(f"update_job, {job_id=}, {job_in=}")
     if job_id not in db["jobs"]:

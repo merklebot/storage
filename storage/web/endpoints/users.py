@@ -39,7 +39,7 @@ async def create_user(
 @router.get("/{user_id}", response_model=schemas.User)
 async def read_user_by_id(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
     user_id: int,
     current_tenant: Tenant = Depends(get_current_tenant),
 ):

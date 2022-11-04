@@ -20,7 +20,7 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Content])
 async def read_contents(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
 ):
     log.debug("read_contents")
     return list(db["contents"].values())
@@ -29,7 +29,7 @@ async def read_contents(
 @router.post("/", response_model=schemas.Content)
 async def create_content(
     content_create: schemas.ContentCreate,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
 ):
     log.debug(f"create_content, {content_create.origin_url}")
     filename = content_create.origin_url.split("/")[-1]
@@ -59,7 +59,7 @@ async def create_content(
 @router.get("/{content_id}", response_model=schemas.Content)
 async def read_content_by_id(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
     content_id: int,
 ):
     log.debug(f"read_content_by_id, {content_id=}")
@@ -73,7 +73,7 @@ async def read_content_by_id(
 @router.patch("/{content_id}", response_model=schemas.Content)
 async def update_content(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
     content_id: int,
     content_in: schemas.ContentUpdate,
 ):
@@ -87,7 +87,7 @@ async def update_content(
 
 
 @router.delete("/{content_id}", response_model=schemas.Content)
-async def delete_content(*, db: dict = Depends(deps.get_db), content_id: int):
+async def delete_content(*, db: dict = Depends(deps.get_fake_db), content_id: int):
     log.debug(f"delete_content, {content_id=}")
     if content_id not in db["contents"]:
         raise HTTPException(status_code=404, detail="Content not found")
@@ -97,7 +97,9 @@ async def delete_content(*, db: dict = Depends(deps.get_db), content_id: int):
 
 
 @router.get("/{content_id}/download")
-async def download_content_file(*, db: dict = Depends(deps.get_db), content_id: int):
+async def download_content_file(
+    *, db: dict = Depends(deps.get_fake_db), content_id: int
+):
     log.debug(f"download_content_file, {content_id=}")
     try:
         metadata = db["contents"][content_id]
@@ -129,7 +131,7 @@ async def download_content_file(*, db: dict = Depends(deps.get_db), content_id: 
 
 @router.get("/{content_id}/files/{filename}")
 async def download_content_by_filename(
-    *, db: dict = Depends(deps.get_db), content_id: int, filename: str
+    *, db: dict = Depends(deps.get_fake_db), content_id: int, filename: str
 ):
     log.debug(f"download_content_by_filename, {content_id=}, {filename=}")
 

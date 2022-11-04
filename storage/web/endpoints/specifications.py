@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Specification])
 async def read_specifications(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
 ):
     return list(db["specification"].values())
 
@@ -20,7 +20,9 @@ async def read_specifications(
     "/", response_model=schemas.Specification, status_code=status.HTTP_201_CREATED
 )
 async def create_specification(
-    *, db: dict = Depends(deps.get_db), specification_in: schemas.SpecificationCreate
+    *,
+    db: dict = Depends(deps.get_fake_db),
+    specification_in: schemas.SpecificationCreate,
 ):
     log.debug(f"create_specification, {specification_in=}")
     specification = schemas.Specification(
@@ -33,7 +35,7 @@ async def create_specification(
 
 @router.get("/{specification_id}", response_model=schemas.Specification)
 async def read_specification_by_id(
-    *, db: dict = Depends(deps.get_db), specification_id: int
+    *, db: dict = Depends(deps.get_fake_db), specification_id: int
 ):
     log.debug(f"read_specification_by_id, {specification_id=}")
     try:
@@ -45,7 +47,7 @@ async def read_specification_by_id(
 @router.put("/{specification_id}", response_model=schemas.Specification)
 async def update_specification(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
     specification_id: int,
     specification_in: schemas.SpecificationUpdate,
 ):

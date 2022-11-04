@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Permission])
 async def read_permissions(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
 ):
     return list(db["permissions"].values())
 
@@ -20,7 +20,7 @@ async def read_permissions(
     "/", response_model=schemas.Permission, status_code=status.HTTP_201_CREATED
 )
 async def create_permission(
-    *, db: dict = Depends(deps.get_db), permission_in: schemas.PermissionCreate
+    *, db: dict = Depends(deps.get_fake_db), permission_in: schemas.PermissionCreate
 ):
     log.debug(f"create_permission, {permission_in=}")
     permission = schemas.Permission(
@@ -32,7 +32,9 @@ async def create_permission(
 
 
 @router.get("/{permission_id}", response_model=schemas.Permission)
-async def read_permission_by_id(*, db: dict = Depends(deps.get_db), permission_id: int):
+async def read_permission_by_id(
+    *, db: dict = Depends(deps.get_fake_db), permission_id: int
+):
     log.debug(f"read_permission_by_id, {permission_id=}")
     try:
         return db["permissions"][permission_id]
@@ -43,7 +45,7 @@ async def read_permission_by_id(*, db: dict = Depends(deps.get_db), permission_i
 @router.put("/{permission_id}", response_model=schemas.Permission)
 async def update_permission(
     *,
-    db: dict = Depends(deps.get_db),
+    db: dict = Depends(deps.get_fake_db),
     permission_id: int,
     permission_in: schemas.PermissionUpdate,
 ):
