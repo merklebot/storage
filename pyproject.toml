@@ -21,6 +21,7 @@ psycopg2 = "^2.9.5"
 SQLAlchemy-Utils = "^0.38.3"
 alembic = "^1.8.1"
 tenacity = "^8.1.0"
+typeguard = "^2.13.3"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"

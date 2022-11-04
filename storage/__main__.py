@@ -7,6 +7,7 @@ from uvicorn import Config, Server
 
 from storage import db
 from storage.config import settings
+from storage.db.multitenancy import tenant_create
 from storage.db.session import SessionLocal, engine
 from storage.logging import log, setup_logging
 from storage.web.api import api_router
@@ -21,6 +22,7 @@ def pre_start():
     )(db.try_connect)
     retry_db_connect(session)
     db.ensure_exists(engine)
+    db.create_shared_metadata(engine)
     log.info("initialization complete")
 
 
@@ -28,12 +30,20 @@ if __name__ == "__main__":
     setup_logging()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--pre-start", help="execute preliminary routine and exit", action="store_true"
+    )
+    group.add_argument(
+        "--tenant-create", help="creates new tenant", dest="tenant", type=str
     )
     args = parser.parse_args()
     if args.pre_start:
         pre_start()
+        exit(0)
+    if args.tenant:
+        tenant_create(args.tenant, args.tenant, args.tenant)
+        log.info(f"new tenant created, {args.tenant=}")
         exit(0)
 
     app = FastAPI(title="MerkleBot Storage")
