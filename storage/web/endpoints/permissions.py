@@ -20,8 +20,17 @@ async def read_permissions(
     "/", response_model=schemas.Permission, status_code=status.HTTP_201_CREATED
 )
 async def create_permission(
-    *, db: dict = Depends(deps.get_fake_db), permission_in: schemas.PermissionCreate
+    *,
+    db: dict = Depends(deps.get_fake_db),
+    permission_in: schemas.PermissionCreate,
+    permissions: schemas.PermissionWrapper = Depends(
+        deps.get_permission_for_user_by_content_id
+    ),
 ):
+    if not permissions.owner:
+        raise HTTPException(
+            status_code=403, detail="No permission to create permission"
+        )
     log.debug(f"create_permission, {permission_in=}")
     permission = schemas.Permission(
         id=max(db["permissions"].keys()) + 1 if db["permissions"].keys() else 0,
@@ -33,7 +42,9 @@ async def create_permission(
 
 @router.get("/{permission_id}", response_model=schemas.Permission)
 async def read_permission_by_id(
-    *, db: dict = Depends(deps.get_fake_db), permission_id: int
+    *,
+    db: dict = Depends(deps.get_fake_db),
+    permission_id: int,
 ):
     log.debug(f"read_permission_by_id, {permission_id=}")
     try:
@@ -48,7 +59,14 @@ async def update_permission(
     db: dict = Depends(deps.get_fake_db),
     permission_id: int,
     permission_in: schemas.PermissionUpdate,
+    permissions: schemas.PermissionWrapper = Depends(
+        deps.get_permission_for_user_by_content_id
+    ),
 ):
+    if not (permissions.owner or permissions.update):
+        raise HTTPException(
+            status_code=403, detail="No permission to update permission"
+        )
     log.debug(f"update_permission, {permission_id=}, {permission_in=}")
     if permission_id not in db["permissions"]:
         raise HTTPException(status_code=404, detail="Permission not found")
@@ -64,13 +82,17 @@ async def delete_permission(
     *,
     db: dict = Depends(deps.get_fake_db),
     permission_id: int,
+    permissions: schemas.PermissionWrapper = Depends(
+        deps.get_permission_for_user_by_content_id
+    ),
 ):
     log.debug(f"delete_permission, {permission_id=}")
+    if not permissions.owner:
+        raise HTTPException(
+            status_code=403, detail="No permission to delete permission"
+        )
     if permission_id not in db["permission"]:
         raise HTTPException(status_code=404, detail="Permission not found")
     permission = db["permissions"].pop(permission_id)
     log.debug(permission)
     return permission
-
-
-# @router.get("/content/{content_id}")

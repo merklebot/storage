@@ -8,6 +8,7 @@ from sqlalchemy import func
 from storage.db.models.tenant import Tenant
 from storage.db.models.token import Token
 from storage.db.session import with_db
+from storage.web.schemas.permission import PermissionWrapper
 from storage.web.security import verify_api_key
 
 db = {
@@ -82,3 +83,26 @@ def get_current_tenant(
         )
 
     return tenant
+
+
+async def get_permission_for_user_by_content_id(
+    *, db: dict = Depends(get_fake_db), content_id: int, user_id: int
+) -> PermissionWrapper:
+    # check for content
+    if content_id not in db["contents"]:
+        raise HTTPException(status_code=404, detail="Content not found")
+    content = db["contents"][content_id]
+
+    # check for owner
+    if content["owner_id"] == user_id:
+        return PermissionWrapper(["owner"])
+
+    # check for assignee_id
+    return PermissionWrapper(
+        list(
+            filter(
+                lambda x: x["content_id"] == content_id and x["assignee_id"] == user_id,
+                db["permissions"],
+            )
+        )
+    )
