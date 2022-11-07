@@ -1,10 +1,11 @@
-from fastapi_camelcase import CamelModel as BaseModel
 from enum import Enum
+
+from fastapi_camelcase import CamelModel as BaseModel
 
 
 class PermissionKind(str, Enum):
-    get = "get"
-    update = "update"
+    Read = "read"
+    Update = "update"
 
 
 class PermissionBase(BaseModel):

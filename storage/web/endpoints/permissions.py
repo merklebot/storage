@@ -57,3 +57,20 @@ async def update_permission(
     permission.update({k: v for k, v in permission_in.dict().items() if v is not None})
     db["permissions"][permission_id] = permission
     return permission
+
+
+@router.delete("/{permission_id}", response_model=schemas.Permission)
+async def delete_permission(
+    *,
+    db: dict = Depends(deps.get_fake_db),
+    permission_id: int,
+):
+    log.debug(f"delete_permission, {permission_id=}")
+    if permission_id not in db["permission"]:
+        raise HTTPException(status_code=404, detail="Permission not found")
+    permission = db["permissions"].pop(permission_id)
+    log.debug(permission)
+    return permission
+
+
+# @router.get("/content/{content_id}")
