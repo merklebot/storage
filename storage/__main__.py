@@ -7,8 +7,7 @@ from uvicorn import Config, Server
 
 from storage import db
 from storage.config import settings
-from storage.db.models.tenant import Tenant
-from storage.db.models.token import Token
+from storage.db.models.tenant import Tenant, Token
 from storage.db.multitenancy import tenant_create
 from storage.db.session import SessionLocal, engine, with_db
 from storage.logging import log, setup_logging
