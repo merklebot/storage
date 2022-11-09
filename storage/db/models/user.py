@@ -1,4 +1,5 @@
 from sqlalchemy import TIMESTAMP, Column, Integer, func
+from sqlalchemy.orm import relationship
 
 from storage.db.base_class import Base
 
@@ -14,5 +15,6 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.current_timestamp(),
     )
+    tokens = relationship("Token", back_populates="owner")
 
     __table_args__ = ({"schema": "tenant"},)
