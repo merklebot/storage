@@ -25,6 +25,7 @@ def pre_start():
     retry_db_connect(session)
     db.ensure_exists(engine)
     db.create_shared_metadata(engine)
+    tenant_create("tenant_default", "tenant_default", "tenant_default")
     log.info("initialization complete")
 
 
