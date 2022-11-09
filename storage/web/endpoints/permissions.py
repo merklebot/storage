@@ -23,10 +23,12 @@ async def create_permission(
     *,
     db: dict = Depends(deps.get_fake_db),
     permission_in: schemas.PermissionCreate,
-    permissions: schemas.PermissionWrapper = Depends(
-        deps.get_permission_for_user_by_content_id
-    ),
+    user_id: int,
 ):
+
+    permissions = deps.get_permission_for_user_by_content_id(
+        db, content_id=permission_in.content_id, user_id=user_id
+    )
     if not permissions.owner:
         raise HTTPException(
             status_code=403, detail="No permission to create permission"
@@ -59,10 +61,11 @@ async def update_permission(
     db: dict = Depends(deps.get_fake_db),
     permission_id: int,
     permission_in: schemas.PermissionUpdate,
-    permissions: schemas.PermissionWrapper = Depends(
-        deps.get_permission_for_user_by_content_id
-    ),
+    user_id: int,
 ):
+    permissions = deps.get_permission_for_user_by_content_id(
+        db, content_id=permission_in.content_id, user_id=user_id
+    )
     if not (permissions.owner or permissions.update):
         raise HTTPException(
             status_code=403, detail="No permission to update permission"
@@ -82,17 +85,15 @@ async def delete_permission(
     *,
     db: dict = Depends(deps.get_fake_db),
     permission_id: int,
-    permissions: schemas.PermissionWrapper = Depends(
-        deps.get_permission_for_user_by_content_id
-    ),
+    user_id: int,
 ):
     log.debug(f"delete_permission, {permission_id=}")
-    if not permissions.owner:
-        raise HTTPException(
-            status_code=403, detail="No permission to delete permission"
-        )
     if permission_id not in db["permission"]:
         raise HTTPException(status_code=404, detail="Permission not found")
     permission = db["permissions"].pop(permission_id)
+    if not permission["owner_id"] != user_id:
+        raise HTTPException(
+            status_code=403, detail="No permission to delete permission"
+        )
     log.debug(permission)
     return permission
