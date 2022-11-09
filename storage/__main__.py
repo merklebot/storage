@@ -2,6 +2,7 @@ import argparse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import ProgrammingError
 from tenacity import retry, stop_after_attempt, wait_fixed
 from uvicorn import Config, Server
 
@@ -25,7 +26,6 @@ def pre_start():
     retry_db_connect(session)
     db.ensure_exists(engine)
     db.create_shared_metadata(engine)
-    tenant_create("tenant_default", "tenant_default", "tenant_default")
     log.info("initialization complete")
 
 
@@ -41,6 +41,11 @@ if __name__ == "__main__":
         "--tenant-create", help="creates new tenant", dest="new_tenant_name"
     )
     group.add_argument(
+        "--create-default-tenant",
+        help="creates new tenant with tenant_default name",
+        action="store_true",
+    )
+    group.add_argument(
         "--create-api-key-for-tenant",
         help="create API key token for a tenant",
         dest="existing_tenant_name",
@@ -48,6 +53,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.pre_start:
         pre_start()
+        exit(0)
+    if args.create_default_tenant:
+        try:
+            tenant_create("tenant_default", "tenant_default", "tenant_default")
+        except ProgrammingError:
+            pass
         exit(0)
     if args.new_tenant_name:
         tenant_create(args.new_tenant_name, args.new_tenant_name, args.new_tenant_name)
