@@ -26,6 +26,8 @@ def get_fake_db() -> Generator:
 
 
 def get_tenant(request: Request) -> Tenant:
+    """Determine a tenant by a subdomain the request sent to."""
+
     host_without_port = request.headers["host"].split(":", 1)[0]
     url = urlparse(host_without_port)
     subdomain = url.path.split(".", 1)[0]
