@@ -50,23 +50,6 @@ async def read_user_by_id(
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@router.put("/{user_id}", response_model=schemas.User)
-async def update_user(
-    *,
-    db: dict = Depends(deps.get_fake_db),
-    user_id: int,
-    user_in: schemas.UserUpdate,
-    current_tenant: Tenant = Depends(get_current_tenant),
-):
-    log.debug(f"update_user, {user_id=}, {user_in=}, {current_tenant.id=}")
-    if user_id not in db["users"]:
-        raise HTTPException(status_code=404, detail="User not found")
-    user = db["users"][user_id]
-    user.update(user_in.dict())
-    db["users"][user_id] = user
-    return user
-
-
 @router.delete("/{user_id}", response_model=schemas.User)
 async def delete_user(
     *,
