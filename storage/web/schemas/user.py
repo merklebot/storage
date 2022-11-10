@@ -15,7 +15,6 @@ class UserUpdate(UserBase):
 
 class UserInDBBase(UserBase):
     id: int
-    tenant_id: int
 
     class Config:
         orm_mode = True
