@@ -5,8 +5,7 @@ from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy import func
 
-from storage.db.models.tenant import Tenant
-from storage.db.models.token import Token
+from storage.db.models.tenant import Tenant, TokenForTenant
 from storage.db.session import with_db
 from storage.web.schemas.permission import PermissionWrapper
 from storage.web.security import verify_api_key
@@ -47,11 +46,14 @@ def get_db(tenant: Tenant = Depends(get_tenant)) -> Generator:
         yield db
 
 
-def get_tokens_by_tenant_id(db, tenant_id: int) -> list[Token]:
+def get_tokens_by_tenant_id(db, tenant_id: int) -> list[TokenForTenant]:
     tokens = (
-        db.query(Token)
-        .filter(Token.owner_id == tenant_id)
-        .filter((Token.expiry == None) | (Token.expiry > func.now()))  # noqa: E711
+        db.query(TokenForTenant)
+        .filter(TokenForTenant.owner_id == tenant_id)
+        .filter(
+            (TokenForTenant.expiry == None)  # noqa: E711
+            | (TokenForTenant.expiry > func.now())
+        )
         .all()
     )
     return tokens
