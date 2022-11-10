@@ -2,7 +2,7 @@ from fastapi_camelcase import CamelModel as BaseModel
 
 
 class UserBase(BaseModel):
-    tenant_id: int
+    pass
 
 
 class UserCreate(UserBase):
@@ -15,13 +15,14 @@ class UserUpdate(UserBase):
 
 class UserInDBBase(UserBase):
     id: int
+    tenant_id: int
 
     class Config:
         orm_mode = True
 
 
 class User(UserInDBBase):
-    tenant_id: int
+    pass
 
 
 class UserInDB(UserInDBBase):

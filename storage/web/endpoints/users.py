@@ -31,6 +31,7 @@ async def create_user(
     user = schemas.User(
         id=max(db["users"].keys()) + 1 if db["users"].keys() else 0,
         **user_in.dict(),
+        tenant_id=current_tenant.id,
     )
     db["users"][user.id] = user.dict()
     return user
