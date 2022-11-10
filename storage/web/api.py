@@ -7,6 +7,7 @@ from storage.web.endpoints import (
     permissions,
     specifications,
     tenants,
+    tokens,
     users,
 )
 
@@ -22,3 +23,4 @@ api_router.include_router(
     permissions.router, prefix="/permissions", tags=["Permissions"]
 )
 api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
+api_router.include_router(tokens.router, prefix="/tokens", tags=["Auth tokens"])
