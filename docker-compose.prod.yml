@@ -8,13 +8,17 @@ services:
       - internal
     deploy:
       labels:
+        - traefik.enable=true
         - traefik.http.routers.storage.entrypoints=websecure
-        - traefik.http.routers.storage.rule=Host(`api2.merklebot.com`) && PathPrefix(`${SERVER_ROOT_PATH}`)
+        - traefik.http.routers.storage.rule=Host(`storage.api2.merklebot.com`) || HostRegexp(`{tenant:[\w-]+}.storage.api2.merklebot.com`)
         - traefik.http.routers.storage.tls=true
-        - traefik.http.routers.storage.tls.certresolver=letsencrypt
+        - traefik.http.routers.storage.tls.certresolver=letsencrypt-dnschallenge
+        - traefik.http.routers.storage.tls.domains[0].main=storage.api2.merklebot.com
+        - traefik.http.routers.storage.tls.domains[0].sans=*.storage.api2.merklebot.com
+        - traefik.http.routers.storage.service=storage
         - traefik.http.services.storage.loadbalancer.server.port=${SERVER_PORT}
-        - traefik.http.middlewares.strip-storage.stripprefix.prefixes=${SERVER_ROOT_PATH}
-        - traefik.http.routers.storage.middlewares=strip-storage@docker
+        # - traefik.http.middlewares.strip-storage.stripprefix.prefixes=${SERVER_ROOT_PATH}
+        # - traefik.http.routers.storage.middlewares=strip-storage@docker
 
   db:
     volumes:
