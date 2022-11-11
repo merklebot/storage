@@ -31,10 +31,9 @@ async def create_content(
     content_create: schemas.ContentCreate,
     db: dict = Depends(deps.get_fake_db),
 ):
-    log.debug(f"create_content, {content_create.origin_url}")
-    filename = content_create.origin_url.split("/")[-1]
+    log.debug(f"create_content, {content_create.origin}")
     async with httpx.AsyncClient() as client:
-        r = await client.get(content_create.origin_url)
+        r = await client.get(content_create.origin)
         content_file = io.BytesIO(r.content)
     async with httpx.AsyncClient(
         base_url=settings.IPFS_HTTP_PROVIDER,
@@ -45,9 +44,7 @@ async def create_content(
 
     content = schemas.Content(
         id=max(db["contents"].keys()) + 1 if db["contents"].keys() else 0,
-        filename=filename,
         ipfs_cid=response.json()["Hash"],
-        encryption_key_id="",
         owner_id=content_create.owner_id,
     )
 
@@ -123,10 +120,8 @@ async def download_content_file(
             detail="IPFS provider failure",
         )
     log.debug(f"{stdout=}, {stderr=}, {fd.name=}")
-
-    return FileResponse(
-        fd.name, filename=metadata["filename"], background=BackgroundTask(fd.close)
-    )
+    filename = metadata["origin"].split("/")[-1]
+    return FileResponse(fd.name, filename=filename, background=BackgroundTask(fd.close))
 
 
 @router.get("/{content_id}/files/{filename}")
@@ -140,7 +135,7 @@ async def download_content_by_filename(
     except KeyError:
         raise HTTPException(status_code=404, detail="Content not found")
 
-    if metadata["filename"] != filename:
+    if filename not in metadata["origin"]:
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
         )
@@ -162,7 +157,5 @@ async def download_content_by_filename(
             detail="IPFS provider failure",
         )
     log.debug(f"{stdout=}, {stderr=}, {fd.name=}")
-
-    return FileResponse(
-        fd.name, filename=metadata["filename"], background=BackgroundTask(fd.close)
-    )
+    filename = metadata["origin"].split("/")[-1]
+    return FileResponse(fd.name, filename=filename, background=BackgroundTask(fd.close))

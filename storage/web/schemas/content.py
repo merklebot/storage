@@ -3,15 +3,11 @@ from pydantic import AnyHttpUrl
 
 
 class ContentBase(BaseModel):
-    filename: str | None = None
-    ipfs_cid: str | None = None
-    encryption_key_id: str | None = None
-    owner_id: int | None = None
+    pass
 
 
 class ContentCreate(ContentBase):
-    method: str | None = "external"
-    origin_url: AnyHttpUrl
+    origin: AnyHttpUrl
 
 
 class ContentUpdate(ContentBase):
@@ -20,6 +16,8 @@ class ContentUpdate(ContentBase):
 
 class ContentInDBBase(ContentBase):
     id: int
+    ipfs_cid: str | None = None
+    owner_id: int | None = None
 
     class Config:
         orm_mode = True
