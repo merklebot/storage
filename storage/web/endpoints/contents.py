@@ -67,22 +67,6 @@ async def read_content_by_id(
         raise HTTPException(status_code=404, detail="Content not found")
 
 
-@router.patch("/{content_id}", response_model=schemas.Content)
-async def update_content(
-    *,
-    db: dict = Depends(deps.get_fake_db),
-    content_id: int,
-    content_in: schemas.ContentUpdate,
-):
-    log.debug(f"update_content, {content_id=}, {content_in=}")
-    if content_id not in db["contents"]:
-        raise HTTPException(status_code=404, detail="Content not found")
-    content = db["contents"][content_id]
-    content.update(content_in.dict())
-    db["contents"][content_id] = content
-    return content
-
-
 @router.delete("/{content_id}", response_model=schemas.Content)
 async def delete_content(*, db: dict = Depends(deps.get_fake_db), content_id: int):
     log.debug(f"delete_content, {content_id=}")
