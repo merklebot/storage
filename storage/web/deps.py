@@ -109,7 +109,7 @@ def get_current_user(
     valid_token_index = next((idx for idx, valid in enumerate(validity) if valid))
     token = tokens[valid_token_index]
     with with_db(tenant.schema) as db:
-        user: User = db.query(User).filter(User.id == token.owner_id)
+        user: User = db.query(User).filter(User.id == token.owner_id).first()
     return user
 
 
