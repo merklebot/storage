@@ -37,4 +37,4 @@ async def create_token(
     db.commit()
     db.refresh(token)
 
-    return token
+    return {"plain_token": api_key, **token.__dict__}

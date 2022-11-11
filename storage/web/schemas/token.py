@@ -12,9 +12,20 @@ class TokenCreate(TokenBase):
     pass
 
 
-class Token(TokenBase):
+class TokenInDBBase(TokenBase):
     id: int
-    hashed_token: str
 
     class Config:
         orm_mode = True
+
+
+class Token(TokenBase):
+    id: int
+    plain_token: str
+
+    class Config:
+        orm_mode = True
+
+
+class TokenInDB(TokenInDBBase):
+    pass
