@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy import func
 
+from storage.db.models import Token, User
 from storage.db.models.tenant import Tenant, TokenForTenant
 from storage.db.session import with_db
 from storage.web.schemas.permission import PermissionWrapper
@@ -87,6 +88,29 @@ def get_current_tenant(
         )
 
     return tenant
+
+
+def get_current_user(
+    api_key: str = Depends(get_api_key),
+    tenant: Tenant = Depends(get_tenant),
+) -> User:
+    with with_db(tenant.schema) as db:
+        tokens: list[Token] = (
+            db.query(Token)
+            .filter((Token.expiry == None) | (Token.expiry > func.now()))  # noqa: E711
+            .all()
+        )
+    validity = [verify_api_key(api_key, token.hashed_token) for token in tokens]
+    if not any(validity):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    valid_token_index = next((idx for idx, valid in enumerate(validity) if valid))
+    token = tokens[valid_token_index]
+    with with_db(tenant.schema) as db:
+        user: User = db.query(User).filter(User.id == token.owner_id)
+    return user
 
 
 async def get_permission_for_user_by_content_id(
