@@ -16,5 +16,6 @@ class User(Base):
         onupdate=func.current_timestamp(),
     )
     tokens = relationship("Token", back_populates="owner")
+    contents = relationship("Content", back_populates="owner")
 
     __table_args__ = ({"schema": "tenant"},)
