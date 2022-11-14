@@ -12,7 +12,7 @@ services:
     ports:
       - 5432:5432
 
-  kubo-ipfs:
+  kubo:
     image: ipfs/kubo:v0.15.0
     ports:
       - 5001:5001
