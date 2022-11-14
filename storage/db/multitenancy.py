@@ -8,6 +8,7 @@ from sqlalchemy.schema import CreateSchema
 from typeguard import typechecked
 
 from storage.db.base_class import Base
+from storage.db.models import User
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal, engine
 
@@ -33,6 +34,8 @@ def tenant_create(tenant: Tenant) -> None:
         db.add(tenant)
         db.execute(CreateSchema(tenant.schema))
         get_tenant_specific_metadata().create_all(bind=db.connection())
+        user = User()
+        db.add(user)
         db.commit()
         db.refresh(tenant)
     return tenant
