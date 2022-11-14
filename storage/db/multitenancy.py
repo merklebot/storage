@@ -28,19 +28,14 @@ def get_tenant_specific_metadata():
     return meta
 
 
-def tenant_create(name: str, schema: str, host: str) -> None:
-    with with_db(schema) as db:
-        tenant = Tenant(
-            name=name,
-            host=host,
-            schema=schema,
-        )
+def tenant_create(tenant: Tenant) -> None:
+    with with_db(tenant.schema) as db:
         db.add(tenant)
-
-        db.execute(CreateSchema(schema))
+        db.execute(CreateSchema(tenant.schema))
         get_tenant_specific_metadata().create_all(bind=db.connection())
-
         db.commit()
+        db.refresh(tenant)
+    return tenant
 
 
 @contextmanager

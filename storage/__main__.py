@@ -56,12 +56,23 @@ if __name__ == "__main__":
         exit(0)
     if args.create_default_tenant:
         try:
-            tenant_create("tenant_default", "tenant_default", "tenant_default")
+            tenant_name = "tenant_default"
+            tenant = Tenant(
+                name=tenant_name,
+                schema=tenant_name,
+                host=tenant_name.replace("_", "-"),
+            )
+            tenant_create(tenant)
         except ProgrammingError:
             pass
         exit(0)
     if args.new_tenant_name:
-        tenant_create(args.new_tenant_name, args.new_tenant_name, args.new_tenant_name)
+        tenant = Tenant(
+            name=args.new_tenant_name,
+            schema=args.new_tenant_name,
+            host=args.new_tenant_name.replace("_", "-"),
+        )
+        tenant_create(tenant)
         log.info(f"new tenant created, {args.new_tenant_name=}")
         exit(0)
     if args.existing_tenant_name:
