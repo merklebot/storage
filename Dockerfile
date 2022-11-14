@@ -7,6 +7,8 @@ RUN wget -q https://dist.ipfs.tech/kubo/v0.16.0/kubo_v0.16.0_linux-amd64.tar.gz 
     tar -xvzf kubo_v0.16.0_linux-amd64.tar.gz
 
 FROM python:3.10.6
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 COPY --from=requirements-stage /tmp/kubo/ipfs /usr/local/bin
 RUN ipfs init
 WORKDIR /storage
