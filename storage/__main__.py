@@ -2,6 +2,7 @@ import argparse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from psycopg2.errors import DuplicateSchema
 from sqlalchemy.exc import ProgrammingError
 from tenacity import retry, stop_after_attempt, wait_fixed
 from uvicorn import Config, Server
@@ -54,26 +55,24 @@ if __name__ == "__main__":
     if args.pre_start:
         pre_start()
         exit(0)
-    if args.create_default_tenant:
+    if args.create_default_tenant or args.new_tenant_name:
+        tenant_name = (
+            "tenant_default" if args.create_default_tenant else args.new_tenant_name
+        )
         try:
-            tenant_name = "tenant_default"
             tenant = Tenant(
                 name=tenant_name,
                 schema=tenant_name,
                 host=tenant_name.replace("_", "-"),
             )
             tenant_create(tenant)
-        except ProgrammingError:
-            pass
-        exit(0)
-    if args.new_tenant_name:
-        tenant = Tenant(
-            name=args.new_tenant_name,
-            schema=args.new_tenant_name,
-            host=args.new_tenant_name.replace("_", "-"),
-        )
-        tenant_create(tenant)
-        log.info(f"new tenant created, {args.new_tenant_name=}")
+        except ProgrammingError as e:
+            if isinstance(e.orig, DuplicateSchema):
+                log.warning(f"tenant creation failure, {tenant.name=}, {e=}")
+                exit(0)
+            log.error(f"tenant creation failure, {tenant.name=}, {e=}")
+            raise
+        log.info(f"tenant created, {tenant.name=}, {tenant.schema=}, {tenant.host=}")
         exit(0)
     if args.existing_tenant_name:
         with with_db() as database:
