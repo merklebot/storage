@@ -12,6 +12,9 @@ class PermissionKind(enum.Enum):
 
 class Permission(Base):
     __tablename__ = "permissions"
+    # ToDo: uniqueness constraint by (kind, content_id, assignee_id) combination
+    # ToDo: content_owner != assignee constraint
+    # ToDo: assignee and content exists constraint
 
     id = Column("id", Integer, primary_key=True, index=True)
     kind = Column("kind", Enum(PermissionKind), index=True, nullable=False)
