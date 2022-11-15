@@ -1,12 +1,8 @@
-from enum import Enum
 from typing import List
 
 from fastapi_camelcase import CamelModel as BaseModel
 
-
-class PermissionKind(str, Enum):
-    Read = "read"
-    Update = "update"
+from storage.db.models.permission import PermissionKind
 
 
 class PermissionWrapper:
