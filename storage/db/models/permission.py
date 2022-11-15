@@ -7,7 +7,7 @@ from storage.db.base_class import Base
 
 
 class PermissionKind(enum.Enum):
-    READ = 1
+    READ = "read"
 
 
 class Permission(Base):
