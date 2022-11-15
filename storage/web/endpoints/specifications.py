@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
@@ -16,9 +16,7 @@ async def read_specifications(
     return list(db["specification"].values())
 
 
-@router.post(
-    "/", response_model=schemas.Specification, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=schemas.Specification)
 async def create_specification(
     *,
     db: dict = Depends(deps.get_fake_db),

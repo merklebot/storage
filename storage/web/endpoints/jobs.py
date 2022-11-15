@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
@@ -17,7 +17,7 @@ async def read_jobs(
     return list(db["jobs"].values())
 
 
-@router.post("/", response_model=schemas.Job, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.Job)
 async def create_job(
     *, db: dict = Depends(deps.get_fake_db), job_in: schemas.JobCreate
 ):
