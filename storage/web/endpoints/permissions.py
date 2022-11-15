@@ -67,37 +67,6 @@ async def read_permission_by_id(
     return permission
 
 
-@router.put("/{permission_id}", response_model=schemas.Permission)
-async def update_permission(
-    *,
-    db: SessionLocal = Depends(deps.get_db),
-    user_id: int,
-    permission_id: int,
-    permission_in: schemas.PermissionUpdate,
-):
-    log.debug(f"update_permission, {permission_in=}, {permission_id=}, {user_id=}")
-    permission: Permission | None = (
-        db.query(Permission).filter(Permission.id == permission_id).first()
-    )
-    if not permission:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found"
-        )
-    content: Content = (
-        db.query(Content).filter(Content.id == permission.content_id).first()
-    )
-    if user_id != content.owner_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
-    permission.assignee_id = permission.assignee_id
-    permission.content_id = permission_in.content_id
-    permission.kind = permission_in.kind
-    db.commit()
-    db.refresh(permission)
-    return permission
-
-
 @router.delete("/{permission_id}", response_model=schemas.Permission)
 async def delete_permission(
     *,
