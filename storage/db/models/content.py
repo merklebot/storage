@@ -14,5 +14,6 @@ class Content(Base):
     origin = Column("origin", URLType, nullable=True)
     owner_id = Column("owner_id", Integer, ForeignKey("tenant.users.id"))
     owner = relationship(User, back_populates="contents")
+    permissions = relationship("Permission", back_populates="content")
 
     __table_args__ = ({"schema": "tenant"},)
