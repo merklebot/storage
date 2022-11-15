@@ -13,9 +13,8 @@ class PermissionWrapper:
 
 
 class PermissionBase(BaseModel):
-    content_id: int
-    owner_id: int
     assignee_id: int
+    content_id: int
     kind: PermissionKind
 
 
