@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.db.models import User
@@ -47,7 +47,9 @@ async def read_user_by_id(
     log.debug(f"read_user_by_id, {user_id=}, {current_tenant.id=}")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
@@ -61,7 +63,9 @@ async def delete_user(
     log.debug(f"delete_user, {user_id=}, {db=}, {current_tenant.id=}")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     db.delete(user)
     db.commit()
     return user

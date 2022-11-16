@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
@@ -39,7 +39,9 @@ async def read_specification_by_id(
     try:
         return db["specification"][specification_id]
     except KeyError:
-        raise HTTPException(status_code=404, detail="Specification not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Specification not found"
+        )
 
 
 @router.put("/{specification_id}", response_model=schemas.Specification)
@@ -51,7 +53,9 @@ async def update_specification(
 ):
     log.debug(f"update_specification, {specification_id=}, {specification_in=}")
     if specification_id not in db["specification"]:
-        raise HTTPException(status_code=404, detail="Specification not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Specification not found"
+        )
     specification = db["specification"][specification_id]
     log.debug(specification)
     specification.update(

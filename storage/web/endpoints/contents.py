@@ -106,7 +106,9 @@ async def read_content_by_id(
     log.debug(f"read_content_by_id, {content_id=}, {current_user.id=}")
     content: Content | None = db.query(Content).filter(Content.id == content_id).first()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+        )
     permission: Permission = (
         db.query(Permission)
         .filter(
@@ -117,7 +119,9 @@ async def read_content_by_id(
         .first()
     )
     if current_user.id != content.owner_id and not permission:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
     return content
 
 
@@ -133,9 +137,13 @@ async def delete_content(
     log.debug(f"delete_content, {content_id=}, {current_user.id=}")
     content: Content = db.query(Content).filter(Content.id == content_id).first()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+        )
     if content.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
     db.delete(content)
     db.commit()
     return content
@@ -153,7 +161,9 @@ async def download_content_file(
     log.debug(f"download_content_file, {content_id=}, {current_user.id=}")
     content: Content = db.query(Content).filter(Content.id == content_id).first()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+        )
     permission: Permission = (
         db.query(Permission)
         .filter(
@@ -164,7 +174,9 @@ async def download_content_file(
         .first()
     )
     if current_user.id != content.owner_id and not permission:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
     fd = tempfile.NamedTemporaryFile()
     ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
     host, port = ipfs_provider_url.hostname, ipfs_provider_url.port

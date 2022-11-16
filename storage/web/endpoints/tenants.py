@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
@@ -35,7 +35,9 @@ async def read_tenant_by_id(*, db: dict = Depends(deps.get_fake_db), tenant_id: 
     try:
         return db["tenants"][tenant_id]
     except KeyError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
+        )
 
 
 @router.put("/{tenant_id}", response_model=schemas.Tenant)
@@ -47,7 +49,9 @@ async def update_tenant(
 ):
     log.debug(f"update_tenant, {tenant_id=}, {tenant_in=}")
     if tenant_id not in db["tenants"]:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
+        )
     tenant = db["tenants"][tenant_id]
     tenant.update(tenant_in.dict())
     db["tenants"][tenant_id] = tenant

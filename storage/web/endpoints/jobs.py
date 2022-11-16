@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.logging import log
@@ -44,7 +44,9 @@ async def read_job_by_id(*, db: dict = Depends(deps.get_fake_db), job_id: int):
     try:
         return db["jobs"][job_id]
     except KeyError:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
 
 @router.get("/{job_id}/webhooks/finish", response_model=schemas.Job)
@@ -56,7 +58,9 @@ async def mark_job_finished(*, db: dict = Depends(deps.get_fake_db), job_id: int
         db["jobs"][job_id] = job
         return job
     except KeyError:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
 
 @router.patch("/{job_id}", response_model=schemas.Job)
@@ -65,7 +69,9 @@ async def update_job(
 ):
     log.debug(f"update_job, {job_id=}, {job_in=}")
     if job_id not in db["jobs"]:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
     job = db["jobs"][job_id]
     log.debug(job)
     job.update({k: v for k, v in job_in.dict().items() if v is not None})

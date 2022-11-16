@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.db.models import Token, User
@@ -24,7 +24,9 @@ async def create_token(
     user = db.query(User).filter(User.id == token_in.owner_id).first()
 
     if not user:
-        raise HTTPException(status_code=422, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="User not found"
+        )
 
     api_key = create_api_key()
     token = Token(

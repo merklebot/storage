@@ -118,7 +118,9 @@ async def get_permission_for_user_by_content_id(
 ) -> PermissionWrapper:
     # check for content
     if content_id not in db["contents"]:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+        )
     content = db["contents"][content_id]
 
     # check for owner
