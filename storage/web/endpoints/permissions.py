@@ -78,7 +78,7 @@ async def create_permission(
     )
     if permission_id:
         return RedirectResponse(
-            f"/{permission_id}",
+            f"/permissions/{permission_id}",
             status_code=status.HTTP_303_SEE_OTHER,
         )
     permission = Permission(
