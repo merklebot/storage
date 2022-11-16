@@ -10,7 +10,8 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
-from storage.db.models import Content, User
+from storage.db.models import Content, Permission, User
+from storage.db.models.permission import PermissionKind
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.web import deps
@@ -25,11 +26,27 @@ async def read_contents(
     db: SessionLocal = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
+    """Read contents the user owns or has permission to read.."""
+
     log.debug(f"read_contents, {current_user.id=}")
-    contents: Content = (
+    contents_owner: list[Content] = (
         db.query(Content).filter(Content.owner_id == current_user.id).all()
     )
-    return contents
+    read_permissions: list[Permission] = (
+        db.query(Permission)
+        .filter(
+            Permission.assignee_id == current_user.id,
+            Permission.kind == PermissionKind.READ,
+        )
+        .all()
+    )
+    contents_permissed_ids: list[int] = [
+        permission.content_id for permission in read_permissions
+    ]
+    contents_permissed: list[Content] = (
+        db.query(Content).filter(Content.id.in_(contents_permissed_ids)).all()
+    )
+    return [*contents_owner, *contents_permissed]
 
 
 @router.post("/", response_model=schemas.Content)
@@ -67,11 +84,22 @@ async def read_content_by_id(
     current_user: User = Depends(deps.get_current_user),
     content_id: int,
 ):
+    """Read content the user owns or has permission to read."""
+
     log.debug(f"read_content_by_id, {content_id=}, {current_user.id=}")
     content: Content | None = db.query(Content).filter(Content.id == content_id).first()
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
-    if content.owner_id != current_user.id:
+    permission: Permission = (
+        db.query(Permission)
+        .filter(
+            Permission.assignee_id == current_user.id,
+            Permission.content_id == content.id,
+            Permission.kind == PermissionKind.READ,
+        )
+        .first()
+    )
+    if current_user.id != content.owner_id and not permission:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return content
 
@@ -83,6 +111,8 @@ async def delete_content(
     current_user: User = Depends(deps.get_current_user),
     content_id: int,
 ):
+    """Delete content the user owns."""
+
     log.debug(f"delete_content, {content_id=}, {current_user.id=}")
     content: Content = db.query(Content).filter(Content.id == content_id).first()
     if not content:
@@ -101,10 +131,23 @@ async def download_content_file(
     current_user: User = Depends(deps.get_current_user),
     content_id: int,
 ):
+    """Read content file the user owns or has permission to read."""
+
     log.debug(f"download_content_file, {content_id=}, {current_user.id=}")
     content: Content = db.query(Content).filter(Content.id == content_id).first()
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
+    permission: Permission = (
+        db.query(Permission)
+        .filter(
+            Permission.assignee_id == current_user.id,
+            Permission.content_id == content.id,
+            Permission.kind == PermissionKind.READ,
+        )
+        .first()
+    )
+    if current_user.id != content.owner_id and not permission:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     fd = tempfile.NamedTemporaryFile()
     ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
     host, port = ipfs_provider_url.hostname, ipfs_provider_url.port
