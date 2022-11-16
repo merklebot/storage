@@ -68,7 +68,7 @@ async def create_permission(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
     permission_id: int | None = (
-        db.query(Permission)
+        db.query(Permission.id)
         .filter(
             Permission.assignee_id == permission_in.assignee_id,
             Permission.content_id == permission_in.content_id,
