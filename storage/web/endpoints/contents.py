@@ -49,7 +49,7 @@ async def read_contents(
     return [*contents_owner, *contents_permissed]
 
 
-@router.post("/", response_model=schemas.Content)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Content)
 async def create_content(
     *,
     db: SessionLocal = Depends(deps.get_db),

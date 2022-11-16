@@ -16,7 +16,7 @@ async def read_keys(
     return list(db["keys"].values())
 
 
-@router.post("/", response_model=schemas.Key)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Key)
 async def create_key(
     *, db: dict = Depends(deps.get_fake_db), key_in: schemas.KeyCreate
 ):

@@ -36,7 +36,9 @@ async def read_permissions(
     return [*permissions_issued, *permissions_assigned]
 
 
-@router.post("/", response_model=schemas.Permission)
+@router.post(
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.Permission
+)
 async def create_permission(
     *,
     db: SessionLocal = Depends(deps.get_db),

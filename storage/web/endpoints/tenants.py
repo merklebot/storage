@@ -16,7 +16,7 @@ async def read_tenants(
     return list(db["tenants"].values())
 
 
-@router.post("/", response_model=schemas.Tenant)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Tenant)
 async def create_tenant(
     *, db: dict = Depends(deps.get_fake_db), tenant_in: schemas.TenantCreate
 ):

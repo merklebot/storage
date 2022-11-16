@@ -16,7 +16,9 @@ async def read_specifications(
     return list(db["specification"].values())
 
 
-@router.post("/", response_model=schemas.Specification)
+@router.post(
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.Specification
+)
 async def create_specification(
     *,
     db: dict = Depends(deps.get_fake_db),

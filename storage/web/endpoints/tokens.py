@@ -12,7 +12,7 @@ from storage.web.security import create_api_key, get_api_key_hash
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Token)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Token)
 async def create_token(
     *,
     db: dict = Depends(deps.get_db),

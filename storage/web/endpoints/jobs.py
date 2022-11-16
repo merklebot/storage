@@ -17,7 +17,7 @@ async def read_jobs(
     return list(db["jobs"].values())
 
 
-@router.post("/", response_model=schemas.Job)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Job)
 async def create_job(
     *, db: dict = Depends(deps.get_fake_db), job_in: schemas.JobCreate
 ):

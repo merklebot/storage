@@ -22,7 +22,7 @@ async def read_users(
     return users
 
 
-@router.post("/", response_model=schemas.User)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.User)
 async def create_user(
     *,
     db: dict = Depends(deps.get_db),
