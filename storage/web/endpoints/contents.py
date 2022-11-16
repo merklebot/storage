@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import httpx
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
@@ -56,7 +56,24 @@ async def create_content(
     current_user: User = Depends(deps.get_current_user),
     content_in: schemas.ContentCreate,
 ):
+    """Create content or get a redirect to an existing one if the same was created
+    earlier.
+    """
+
     log.debug(f"create_content, {content_in.origin=}, {current_user.id=}")
+    content_id: int | None = (
+        db.query(Content.id)
+        .filter(
+            Content.owner_id == current_user.id,
+            Content.origin == content_in.origin,
+        )
+        .scalar()
+    )
+    if content_id:
+        return RedirectResponse(
+            f"/contents/{content_id}",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
     async with httpx.AsyncClient() as client:
         r = await client.get(content_in.origin)
         content_file = io.BytesIO(r.content)
