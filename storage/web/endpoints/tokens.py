@@ -16,27 +16,24 @@ router = APIRouter()
 async def create_token(
     *,
     db: dict = Depends(deps.get_db),
-    token_in: schemas.TokenCreate,
     current_tenant: Tenant = Depends(get_current_tenant),
+    token_in: schemas.TokenCreate,
 ):
+    """Create access token for a given user."""
+
     log.debug(f"create_token, {token_in=}, {current_tenant.id=}")
-
     user = db.query(User).filter(User.id == token_in.owner_id).first()
-
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-
     api_key = create_api_key()
     token = Token(
         hashed_token=get_api_key_hash(api_key),
         expiry=token_in.expiry,
         owner_id=token_in.owner_id,
     )
-
     db.add(token)
     db.commit()
     db.refresh(token)
-
     return {"plain_token": api_key, **token.__dict__}
