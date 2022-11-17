@@ -7,7 +7,7 @@ from sqlalchemy.exc import ProgrammingError
 from tenacity import retry, stop_after_attempt, wait_fixed
 from uvicorn import Config, Server
 
-from storage import db
+from storage import __version__, db
 from storage.config import settings
 from storage.db.models.tenant import Tenant, Token
 from storage.db.multitenancy import tenant_create
@@ -95,7 +95,10 @@ if __name__ == "__main__":
         print(api_key)
         exit(0)
 
-    app = FastAPI(title="MerkleBot Storage")
+    app = FastAPI(
+        title="MerkleBot Storage",
+        version=__version__,
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
