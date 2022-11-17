@@ -16,6 +16,7 @@ class ContentUpdate(ContentBase):
 
 class ContentInDBBase(ContentBase):
     id: int
+    origin: AnyHttpUrl
     ipfs_cid: str | None = None
     owner_id: int | None = None
 
