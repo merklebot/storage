@@ -37,7 +37,18 @@ async def read_permissions(
 
 
 @router.post(
-    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.Permission
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_description="Created",
+    responses={
+        status.HTTP_200_OK: {
+            "model": schemas.Permission,
+            "description": "Duplicate",
+        },
+        status.HTTP_303_SEE_OTHER: {"description": "Already Exists"},
+        status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+    },
+    response_model=schemas.Permission,
 )
 async def create_permission(
     *,
@@ -95,7 +106,11 @@ async def create_permission(
     return permission
 
 
-@router.get("/{permission_id}", response_model=schemas.Permission)
+@router.get(
+    "/{permission_id}",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+    response_model=schemas.Permission,
+)
 async def read_permission_by_id(
     *,
     db: SessionLocal = Depends(deps.get_db),
@@ -129,7 +144,13 @@ async def read_permission_by_id(
     return permission
 
 
-@router.delete("/{permission_id}", response_model=schemas.Permission)
+@router.delete(
+    "/{permission_id}",
+    status_code=status.HTTP_200_OK,
+    response_description="Deleted",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+    response_model=schemas.Permission,
+)
 async def delete_permission(
     *,
     db: SessionLocal = Depends(deps.get_db),
