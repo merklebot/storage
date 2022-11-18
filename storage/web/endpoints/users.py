@@ -25,7 +25,7 @@ async def read_users(
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    description="Created",
+    response_description="Created",
     response_model=schemas.User,
 )
 async def create_user(
@@ -44,8 +44,6 @@ async def create_user(
 
 @router.get(
     "/{user_id}",
-    status_code=status.HTTP_201_CREATED,
-    description="Created",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
     },
