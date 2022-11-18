@@ -22,7 +22,12 @@ async def read_users(
     return users
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.User)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    description="Created",
+    response_model=schemas.User,
+)
 async def create_user(
     *,
     db: dict = Depends(deps.get_db),
@@ -37,7 +42,15 @@ async def create_user(
     return user
 
 
-@router.get("/{user_id}", response_model=schemas.User)
+@router.get(
+    "/{user_id}",
+    status_code=status.HTTP_201_CREATED,
+    description="Created",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+    },
+    response_model=schemas.User,
+)
 async def read_user_by_id(
     *,
     db: dict = Depends(deps.get_db),
@@ -53,7 +66,13 @@ async def read_user_by_id(
     return user
 
 
-@router.delete("/{user_id}", response_model=schemas.User)
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
+    response_description="Deleted",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+    response_model=schemas.User,
+)
 async def delete_user(
     *,
     db: dict = Depends(deps.get_db),
