@@ -14,7 +14,13 @@ from storage.web.security import create_api_key, get_api_key_hash
 router = APIRouter()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Token)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_description="Created",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+    response_model=schemas.Token,
+)
 async def create_token(
     *,
     db: dict = Depends(deps.get_db),
@@ -41,7 +47,15 @@ async def create_token(
     return {"plain_token": api_key, **token.__dict__}
 
 
-@router.patch("/", response_model=schemas.TokenInDB)
+@router.patch(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_description="Updated",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+    },
+    response_model=schemas.TokenInDB,
+)
 async def update_token_expiry(
     *,
     db: dict = Depends(deps.get_db),
