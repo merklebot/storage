@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     app = FastAPI(
         title="MerkleBot Storage",
+        description="A RESTful API for storing files in web3 storage networks.",
         openapi_tags=tags_metadata,
         version=__version__,
     )

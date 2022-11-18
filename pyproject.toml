@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "storage"
 version = "0.2.0"
-description = ""
+description = "A RESTful API for storing files in web3 storage networks."
 authors = ["Alisher A. Khassanov <a.khssnv@gmail.com>"]
 
 [tool.poetry.dependencies]
