@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import httpx
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
@@ -49,7 +49,22 @@ async def read_contents(
     return [*contents_owner, *contents_permissed]
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Content)
+@router.post(
+    "/",
+    response_model=schemas.Content,
+    status_code=status.HTTP_201_CREATED,
+    response_description="Created",
+    responses={
+        status.HTTP_200_OK: {
+            "model": schemas.Content,
+            "description": "Duplicate",
+        },
+        status.HTTP_303_SEE_OTHER: {
+            "model": None,
+            "description": "Already Exists",
+        },
+    },
+)
 async def create_content(
     *,
     db: SessionLocal = Depends(deps.get_db),
@@ -91,10 +106,16 @@ async def create_content(
     db.add(content)
     db.commit()
     db.refresh(content)
-    return content
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=schemas.Content(content)
+    )
 
 
-@router.get("/{content_id}", response_model=schemas.Content)
+@router.get(
+    "/{content_id}",
+    response_model=schemas.Content,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+)
 async def read_content_by_id(
     *,
     db: SessionLocal = Depends(deps.get_db),
@@ -125,7 +146,13 @@ async def read_content_by_id(
     return content
 
 
-@router.delete("/{content_id}", response_model=schemas.Content)
+@router.delete(
+    "/{content_id}",
+    response_model=schemas.Content,
+    status_code=status.HTTP_200_OK,
+    response_description="Deleted",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+)
 async def delete_content(
     *,
     db: dict = Depends(deps.get_db),
@@ -149,7 +176,13 @@ async def delete_content(
     return content
 
 
-@router.get("/{content_id}/download")
+@router.get(
+    "/{content_id}/download",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+        status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Storage Unavailable"},
+    },
+)
 async def download_content_file(
     *,
     db: dict = Depends(deps.get_db),
