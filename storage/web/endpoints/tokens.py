@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
@@ -37,3 +39,36 @@ async def create_token(
     db.commit()
     db.refresh(token)
     return {"plain_token": api_key, **token.__dict__}
+
+
+@router.patch("/", response_model=schemas.TokenInDB)
+async def update_token_expiry(
+    *,
+    db: dict = Depends(deps.get_db),
+    current_tenant: Tenant = Depends(get_current_tenant),
+    token_update: schemas.TokenUpdateExpiry,
+):
+    """Update token expiry. Must be in future, but not exceed current expiry value."""
+
+    log.debug(f"create_token, {token_update=}, {current_tenant.id=}")
+    token: Token | None = db.query(Token).filter(Token.id == token_update.id).first()
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Token not found"
+        )
+    # ToDo: compare in RDBMS
+    if token.expiry and token_update.expiry > token.expiry.replace(tzinfo=timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Can't extend token expiration",
+        )
+    # ToDo: compare with RDBMS time
+    if token_update.expiry <= datetime.now(tz=timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Can't set expiry to the moment in the past",
+        )
+    token.expiry = token_update.expiry
+    db.commit()
+    db.refresh(token)
+    return token

@@ -12,6 +12,11 @@ class TokenCreate(TokenBase):
     pass
 
 
+class TokenUpdateExpiry(BaseModel):
+    id: int
+    expiry: datetime | None = None  # allow UTC timezone only
+
+
 class TokenInDBBase(TokenBase):
     id: int
 
