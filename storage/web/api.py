@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from storage.web.endpoints import (
     contents,
@@ -11,7 +11,13 @@ from storage.web.endpoints import (
     users,
 )
 
-api_router = APIRouter()
+api_router = APIRouter(
+    responses={
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Forbidden",
+        },
+    },
+)
 api_router.include_router(contents.router, prefix="/contents", tags=["Contents"])
 api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
 api_router.include_router(keys.router, prefix="/keys", tags=["Keys"])
