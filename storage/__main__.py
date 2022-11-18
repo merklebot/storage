@@ -13,7 +13,7 @@ from storage.db.models.tenant import Tenant, Token
 from storage.db.multitenancy import tenant_create
 from storage.db.session import SessionLocal, engine, with_db
 from storage.logging import log, setup_logging
-from storage.web.api import api_router
+from storage.web.api import api_router, tags_metadata
 from storage.web.security import create_api_key, get_api_key_hash
 
 
@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     app = FastAPI(
         title="MerkleBot Storage",
+        openapi_tags=tags_metadata,
         version=__version__,
     )
     app.add_middleware(
