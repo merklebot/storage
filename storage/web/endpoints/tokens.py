@@ -19,7 +19,7 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     response_description="Created",
     responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
-    response_model=schemas.Token,
+    response_model=schemas.TokenSecret,
 )
 async def create_token(
     *,
@@ -54,7 +54,7 @@ async def create_token(
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
     },
-    response_model=schemas.TokenInDB,
+    response_model=schemas.Token,
 )
 async def update_token_expiry(
     *,

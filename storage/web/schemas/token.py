@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi_camelcase import CamelModel as BaseModel
+from pydantic import constr
 
 
 class TokenBase(BaseModel):
@@ -19,17 +20,19 @@ class TokenUpdateExpiry(BaseModel):
 
 class TokenInDBBase(TokenBase):
     id: int
+    hashed_token: constr(max_length=64)
 
     class Config:
         orm_mode = True
 
 
-class Token(TokenBase):
+class Token(TokenInDBBase):
+    pass
+
+
+class TokenSecret(TokenInDBBase):
     id: int
     plain_token: str
-
-    class Config:
-        orm_mode = True
 
 
 class TokenInDB(TokenInDBBase):
