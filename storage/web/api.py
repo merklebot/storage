@@ -6,7 +6,6 @@ from storage.web.routers import (
     keys,
     permissions,
     specifications,
-    tenants,
     tokens,
     users,
 )
@@ -27,7 +26,6 @@ api_router.include_router(
 api_router.include_router(
     specifications.router, prefix="/specifications", tags=["Specifications"]
 )
-api_router.include_router(tenants.router, prefix="/tenants", tags=["Tenants"])
 api_router.include_router(tokens.router, prefix="/tokens", tags=["Tokens"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 
@@ -69,10 +67,6 @@ tags_metadata = [
             "like region, replication networks and number of relications. "
             "Implementation is incomplete yet and not ready for usage."
         ),
-    },
-    {
-        "name": "Tenants",
-        "description": ("Tenant can manage users and issue auth tokens for them."),
     },
     {
         "name": "Tokens",
