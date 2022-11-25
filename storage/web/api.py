@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from storage.web.endpoints import (
+from storage.web.routers import (
     contents,
     jobs,
     keys,
