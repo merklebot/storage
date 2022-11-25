@@ -1,8 +1,9 @@
 from fastapi_camelcase import CamelModel as BaseModel
+from pydantic import constr
 
 
 class TenantBase(BaseModel):
-    pass
+    name: constr(max_length=256)
 
 
 class TenantCreate(TenantBase):
@@ -15,6 +16,7 @@ class TenantUpdate(TenantBase):
 
 class TenantInDBBase(TenantBase):
     id: int
+    host: constr(max_length=256)
 
     class Config:
         orm_mode = True
