@@ -8,7 +8,7 @@ from sqlalchemy import func
 from storage.db.models import Token, User
 from storage.db.models.tenant import Tenant, TokenForTenant
 from storage.db.session import with_db
-from storage.web.schemas.permission import PermissionWrapper
+from storage.schemas.permission import PermissionWrapper
 from storage.web.security import verify_api_key
 
 db = {

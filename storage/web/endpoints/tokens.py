@@ -8,7 +8,7 @@ from storage.db.models.tenant import Tenant
 from storage.logging import log
 from storage.web import deps
 from storage.web.deps import get_current_tenant
-from storage.web.schemas import token as schemas
+from storage.schemas import token as schemas
 from storage.web.security import create_api_key, get_api_key_hash
 
 router = APIRouter()

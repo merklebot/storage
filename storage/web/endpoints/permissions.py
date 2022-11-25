@@ -6,7 +6,7 @@ from storage.db.models import Content, Permission, User
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.web import deps
-from storage.web.schemas import permission as schemas
+from storage.schemas import permission as schemas
 
 router = APIRouter()
 

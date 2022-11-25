@@ -6,7 +6,7 @@ from storage.db.models.tenant import Tenant
 from storage.logging import log
 from storage.web import deps
 from storage.web.deps import get_current_tenant
-from storage.web.schemas import user as schemas
+from storage.schemas import user as schemas
 
 router = APIRouter()
 

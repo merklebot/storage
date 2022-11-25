@@ -4,7 +4,7 @@ from fastapi.exceptions import HTTPException
 from storage.logging import log
 from storage.services.custody import custody
 from storage.web import deps
-from storage.web.schemas import job as schemas
+from storage.schemas import job as schemas
 
 router = APIRouter()
 

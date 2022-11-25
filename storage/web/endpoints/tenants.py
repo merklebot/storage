@@ -3,7 +3,7 @@ from fastapi.exceptions import HTTPException
 
 from storage.logging import log
 from storage.web import deps
-from storage.web.schemas import tenant as schemas
+from storage.schemas import tenant as schemas
 
 router = APIRouter()
 
