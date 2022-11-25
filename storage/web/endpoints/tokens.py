@@ -6,9 +6,9 @@ from fastapi.exceptions import HTTPException
 from storage.db.models import Token, User
 from storage.db.models.tenant import Tenant
 from storage.logging import log
+from storage.schemas import token as schemas
 from storage.web import deps
 from storage.web.deps import get_current_tenant
-from storage.schemas import token as schemas
 from storage.web.security import create_api_key, get_api_key_hash
 
 router = APIRouter()
