@@ -107,7 +107,7 @@ async def create_content(
     db.commit()
     db.refresh(content)
     return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=schemas.Content(content)
+        status_code=status.HTTP_201_CREATED, content=content
     )
 
 
