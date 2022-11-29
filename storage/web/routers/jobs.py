@@ -29,11 +29,11 @@ async def create_job(
 
     db["jobs"][job.id] = job.dict()
     if job.kind == "encryption":
-        log.debug(f"start content {job.content_id} encryption")
-        await custody.start_content_encryption(job.content_id, job.id)
+        log.debug(f"start content {job.original_cid} encryption")
+        await custody.start_content_encryption(job.original_cid, job.id)
     elif job.kind == "decryption":
-        log.debug(f"start content {job.content_id} decryption")
-        await custody.start_content_decryption(job.content_id, job.id)
+        log.debug(f"start content {job.original_cid} decryption")
+        await custody.start_content_decryption(job.original_cid, job.aes_key, job.id)
 
     return job
 
@@ -49,12 +49,14 @@ async def read_job_by_id(*, db: dict = Depends(deps.get_fake_db), job_id: int):
         )
 
 
-@router.get("/{job_id}/webhooks/finish", response_model=schemas.Job)
-async def mark_job_finished(*, db: dict = Depends(deps.get_fake_db), job_id: int):
+@router.post("/{job_id}/webhooks/result", response_model=schemas.Job)
+async def mark_job_finished(
+    *, db: dict = Depends(deps.get_fake_db), job_id: int, job_result: schemas.JobResult
+):
     log.debug(f"read_job_by_id, {job_id=}")
     try:
         job = db["jobs"][job_id]
-        job.update({"status": "finished"})
+        job.update({"status": job_result.status, "result": job_result.result})
         db["jobs"][job_id] = job
         return job
     except KeyError:

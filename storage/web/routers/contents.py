@@ -106,9 +106,7 @@ async def create_content(
     db.add(content)
     db.commit()
     db.refresh(content)
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=content
-    )
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=content)
 
 
 @router.get(
