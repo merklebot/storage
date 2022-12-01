@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import httpx
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
@@ -106,7 +106,7 @@ async def create_content(
     db.add(content)
     db.commit()
     db.refresh(content)
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content=content)
+    return content
 
 
 @router.get(
