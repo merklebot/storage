@@ -1,13 +1,9 @@
-import asyncio
 import io
-import tempfile
-from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
-from starlette.background import BackgroundTask
+from fastapi.responses import RedirectResponse, StreamingResponse
 
 from storage.config import settings
 from storage.db.models import Content, Permission, User
@@ -215,7 +211,7 @@ async def download_content_file(
 
     async def iterative_download(download_url, async_client):
         try:
-            async with async_client.stream('POST', download_url) as response:
+            async with async_client.stream("POST", download_url) as response:
                 async for chunk in response.aiter_bytes():
                     yield chunk
         except Exception as e:
@@ -224,6 +220,8 @@ async def download_content_file(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="IPFS provider failure",
             )
-    return StreamingResponse(iterative_download(url, client),
-                             headers={"Content-Disposition": f"attachment;{filename=}.tar"})
 
+    return StreamingResponse(
+        iterative_download(url, client),
+        headers={"Content-Disposition": f"attachment;{filename=}.tar"},
+    )
