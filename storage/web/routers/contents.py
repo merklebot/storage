@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import httpx
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
 from storage.config import settings
@@ -208,21 +208,22 @@ async def download_content_file(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-    fd = tempfile.NamedTemporaryFile()
-    ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
-    host, port = ipfs_provider_url.hostname, ipfs_provider_url.port
-    proc = await asyncio.create_subprocess_shell(
-        f"ipfs --api /dns4/{host}/tcp/{port} get -o {fd.name} {content.ipfs_cid}",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    if proc.returncode:
-        log.error(f"{stdout=}, {stderr=}, {fd.name=}, {proc.returncode=}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="IPFS provider failure",
-        )
-    log.debug(f"{stdout=}, {stderr=}, {fd.name=}")
     filename = content.origin.split("/")[-1]
-    return FileResponse(fd.name, filename=filename, background=BackgroundTask(fd.close))
+    url = f"{settings.IPFS_HTTP_PROVIDER}/api/v0/get?arg={content.ipfs_cid}"
+    print(url)
+    client = httpx.AsyncClient()
+
+    async def iterative_download(download_url, async_client):
+        try:
+            async with async_client.stream('POST', download_url) as response:
+                async for chunk in response.aiter_bytes():
+                    yield chunk
+        except Exception as e:
+            log.error(f"download_content_file, {e=} {content.id=}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="IPFS provider failure",
+            )
+    return StreamingResponse(iterative_download(url, client),
+                             headers={"Content-Disposition": f"attachment;{filename=}.tar"})
+
