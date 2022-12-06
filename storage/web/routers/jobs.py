@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
+from storage.db.models import Content, Key, User
+from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import job as schemas
 from storage.services.custody import custody
@@ -19,21 +21,36 @@ async def read_jobs(
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Job)
 async def create_job(
-    *, db: dict = Depends(deps.get_fake_db), job_in: schemas.JobCreate
+    *,
+    local_db: dict = Depends(deps.get_fake_db),
+    db: SessionLocal = Depends(deps.get_db),
+    job_in: schemas.JobCreate,
+    current_user: User = Depends(deps.get_current_user),
 ):
     log.debug(f"create_job, {job_in=}")
     job = schemas.Job(
-        id=max(db["jobs"].keys()) + 1 if db["jobs"].keys() else 0,
+        id=max(local_db["jobs"].keys()) + 1 if local_db["jobs"].keys() else 0,
         **job_in.dict(),
     )
 
-    db["jobs"][job.id] = job.dict()
+    local_db["jobs"][job.id] = job.dict()
+
+    key = (
+        db.query(Key)
+        .filter(Key.id == job.key_id, Key.owner_id == current_user.id)
+        .first()
+    )
+    content = (
+        db.query(Content)
+        .filter(Content.id == job.content_id, Content.owner_id == current_user.id)
+        .first()
+    )
     if job.kind == "encryption":
-        log.debug(f"start content {job.original_cid} encryption")
-        await custody.start_content_encryption(job.original_cid, job.id)
+        log.debug(f"start content {content.id} encryption")
+        await custody.start_content_encryption(content, key, job.id)
     elif job.kind == "decryption":
-        log.debug(f"start content {job.original_cid} decryption")
-        await custody.start_content_decryption(job.original_cid, job.aes_key, job.id)
+        log.debug(f"start content {content.id} decryption")
+        await custody.start_content_decryption(content, key, job.id)
 
     return job
 

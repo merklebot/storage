@@ -2,7 +2,7 @@ from fastapi_camelcase import CamelModel as BaseModel
 
 
 class KeyBase(BaseModel):
-    user_id: int
+    pass
 
 
 class KeyCreate(KeyBase):
@@ -15,6 +15,8 @@ class KeyUpdate(KeyBase):
 
 class KeyInDBBase(KeyBase):
     id: int
+    aes_key: str
+    owner_id: int
 
     class Config:
         orm_mode = True

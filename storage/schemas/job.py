@@ -4,11 +4,9 @@ from pydantic_partial import create_partial_model
 
 
 class JobBase(BaseModel):
-    tenant_id: int
     kind: str
-    aes_key: str | None = None
-    content_id: int | None = None
-    original_cid: str | None = None
+    key_id: int
+    content_id: int
     status: str | None = "created"
     on_status_update: AnyHttpUrl | None = None
     result: dict | None = None

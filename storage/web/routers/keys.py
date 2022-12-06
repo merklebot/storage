@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
+from storage.db.models import Key, User
+from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import key as schemas
+from storage.services.custody import custody
 from storage.web import deps
 
 router = APIRouter()
@@ -11,29 +14,42 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Key])
 async def read_keys(
     *,
-    db: dict = Depends(deps.get_fake_db),
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
-    return list(db["keys"].values())
+    log.debug(f"read_keys, {current_user.id=}")
+
+    keys = db.query(Key).filter(Key.owner_id == current_user.id).all()
+    return keys
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Key)
 async def create_key(
-    *, db: dict = Depends(deps.get_fake_db), key_in: schemas.KeyCreate
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
-    log.debug(f"create_key, {key_in=}")
-    key = schemas.Key(
-        id=max(db["keys"].keys()) + 1 if db["keys"].keys() else 0,
-        **key_in.dict(),
-    )
-    db["keys"][key.id] = key.dict()
+    log.debug(f"create_key, {current_user.id=}")
+    custody_key = await custody.create_key()
+    print(custody_key)
+    key = Key(aes_key=custody_key["aes_key"], owner_id=current_user.id)
+    db.add(key)
+    db.commit()
     return key
 
 
 @router.get("/{id}", response_model=schemas.Key)
-async def read_key_by_id(*, db: dict = Depends(deps.get_fake_db), id: int):
+async def read_key_by_id(
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    id: int,
+):
     log.debug(f"read_key_by_id, {id=}")
     try:
-        return db["keys"][id]
+        return (
+            db.query(Key).filter(Key.id == id, Key.owner_id == current_user.id).first()
+        )
     except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Key not found"
@@ -41,12 +57,19 @@ async def read_key_by_id(*, db: dict = Depends(deps.get_fake_db), id: int):
 
 
 @router.delete("/{id}", response_model=schemas.Key)
-async def delete_key(*, db: dict = Depends(deps.get_fake_db), id: int):
+async def delete_key(
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    id: int,
+):
     log.debug(f"delete_key, {id=}")
-    if id not in db["keys"]:
+    key = db.query(Key).filter(Key.id == id, Key.owner_id == current_user.id).first()
+
+    if not key:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Key not found"
         )
-    key = db["keys"][id]
-    del db["keys"][id]
+    db.delete(key)
+    db.commit()
     return key
