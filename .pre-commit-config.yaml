@@ -1,3 +1,7 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.2.0
@@ -31,3 +35,12 @@ repos:
         additional_dependencies:
           - flake8-absolute-import
           - flake8-black
+
+  - repo: local
+    hooks:
+      - id: commit-msg-format
+        name: commit msg starts with capital
+        language: pygrep
+        entry: '\A(?![A-Z])+'
+        args: [--multiline]
+        stages: [commit-msg]
