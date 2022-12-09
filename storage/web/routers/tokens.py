@@ -9,7 +9,7 @@ from storage.logging import log
 from storage.schemas import token as schemas
 from storage.web import deps
 from storage.web.deps import get_current_tenant
-from storage.web.security import create_api_key, get_api_key_hash
+from storage.web.security import create_access_token, create_api_key, get_api_key_hash
 
 router = APIRouter()
 
@@ -44,7 +44,8 @@ async def create_token(
     db.add(token)
     db.commit()
     db.refresh(token)
-    return {"plain_token": api_key, **token.__dict__}
+    access_token = create_access_token(token.id, api_key)
+    return {"plain_token": access_token, **token.__dict__}
 
 
 @router.patch(

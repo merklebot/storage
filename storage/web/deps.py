@@ -9,7 +9,7 @@ from storage.db.models import Token, User
 from storage.db.models.tenant import Tenant, TokenForTenant
 from storage.db.session import with_db
 from storage.schemas.permission import PermissionWrapper
-from storage.web.security import verify_api_key
+from storage.web.security import decode_access_token, verify_api_key
 
 db = {
     "contents": {},
@@ -69,6 +69,10 @@ def get_api_key(api_key_header: str = Security(api_key_header_auth)) -> str:
     return api_key_header
 
 
+def get_access_token(access_token_header: str = Security(api_key_header_auth)) -> str:
+    return access_token_header
+
+
 def get_current_tenant(
     api_key: str = Depends(get_api_key),
     tenant: Tenant = Depends(get_tenant),
@@ -91,23 +95,23 @@ def get_current_tenant(
 
 
 def get_current_user(
-    api_key: str = Depends(get_api_key),
+    access_token: str = Depends(get_access_token),
     tenant: Tenant = Depends(get_tenant),
 ) -> User:
+    token_id, plain_api_key = decode_access_token(access_token)
     with with_db(tenant.schema) as db:
-        tokens: list[Token] = (
-            db.query(Token)
-            .filter((Token.expiry == None) | (Token.expiry > func.now()))  # noqa: E711
-            .all()
-        )
-    validity = [verify_api_key(api_key, token.hashed_token) for token in tokens]
-    if not any(validity):
+        token: Token | None = db.query(Token).filter(Token.id == token_id).first()
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    valid_token_index = next((idx for idx, valid in enumerate(validity) if valid))
-    token = tokens[valid_token_index]
+    valid = verify_api_key(plain_api_key, token.hashed_token)
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
     with with_db(tenant.schema) as db:
         user: User = db.query(User).filter(User.id == token.owner_id).first()
     return user
