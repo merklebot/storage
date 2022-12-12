@@ -16,3 +16,9 @@ services:
     image: ipfs/kubo:v0.15.0
     ports:
       - 5001:5001
+
+  custody:
+    image: ghcr.io/merklebot/custody:main
+    env_file: .env
+    ports:
+      - 8001:8000
