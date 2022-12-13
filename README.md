@@ -2,6 +2,10 @@
 
 Multy-tenant RESTful HTTP API server for encrypted data storing and retrieval in IPFS and web3 storages with per-user workload accounting.
 
+There are two layers of storage here: one with an instant access and an archive storages.
+Instant access storage backend is IPFS caching node.
+Archive storage is an external service that can replicate and restore content from the IPFS caching node.
+
 ## Launch
 
 ### Run locally for development
