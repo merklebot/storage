@@ -1,15 +1,16 @@
+from typing import Any
+
 from fastapi_camelcase import CamelModel as BaseModel
-from pydantic import AnyHttpUrl
 from pydantic_partial import create_partial_model
+
+from storage.db.models.job import JobKind, JobStatus
 
 
 class JobBase(BaseModel):
-    kind: str
-    key_id: int
     content_id: int
-    status: str | None = "created"
-    on_status_update: AnyHttpUrl | None = None
-    result: dict | None = None
+    kind: JobKind
+    status: JobStatus = JobStatus.CREATED
+    config: Any
 
 
 class JobResult(BaseModel):
