@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
-from storage.db.models import Content, Key, User
+from storage.db.models import Content, Job, Key, User
+from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import job as schemas
@@ -14,9 +15,14 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Job])
 async def read_jobs(
     *,
-    db: dict = Depends(deps.get_fake_db),
+    db: dict = Depends(deps.get_db),
+    current_tenant: Tenant = Depends(deps.get_current_tenant),
 ):
-    return list(db["jobs"].values())
+    """Read jobs created by the tenant."""
+
+    log.debug(f"read_jobs, {current_tenant.id=}")
+    jobs = db.query(Job).all()
+    return jobs
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Job)
