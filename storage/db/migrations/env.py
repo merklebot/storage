@@ -72,7 +72,7 @@ def run_migrations_online() -> None:
 
     def translate_schema(table, to_schema, constraint, referred_schema):
         # pylint: disable=unused-argument
-        return to_schema
+        return to_schema if referred_schema != "shared" else referred_schema
 
     for table in Base.metadata.tables.values():
         table.tometadata(
