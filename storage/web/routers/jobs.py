@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
-from storage.db.models import Content, Job, Key, User
+from storage.db.models import Content, Job
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import job as schemas
-from storage.services.custody import custody
 from storage.web import deps
 
 router = APIRouter()
@@ -25,39 +24,35 @@ async def read_jobs(
     return jobs
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Job)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_description="Created",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+    },
+    response_model=schemas.Job,
+)
 async def create_job(
     *,
-    local_db: dict = Depends(deps.get_fake_db),
     db: SessionLocal = Depends(deps.get_db),
+    current_tenant: Tenant = Depends(deps.get_current_tenant),
     job_in: schemas.JobCreate,
-    current_user: User = Depends(deps.get_current_user),
 ):
-    log.debug(f"create_job, {job_in=}")
-    job = schemas.Job(
-        id=max(local_db["jobs"].keys()) + 1 if local_db["jobs"].keys() else 0,
-        **job_in.dict(),
-    )
+    """Order a new job."""
 
-    local_db["jobs"][job.id] = job.dict()
-
-    key = (
-        db.query(Key)
-        .filter(Key.id == job.key_id, Key.owner_id == current_user.id)
-        .first()
-    )
-    content = (
-        db.query(Content)
-        .filter(Content.id == job.content_id, Content.owner_id == current_user.id)
-        .first()
-    )
-    if job.kind == "encryption":
-        log.debug(f"start content {content.id} encryption")
-        await custody.start_content_encryption(content, key, job.id)
-    elif job.kind == "decryption":
-        log.debug(f"start content {content.id} decryption")
-        await custody.start_content_decryption(content, key, job.id)
-
+    log.debug(f"create_job, {job_in=}, {current_tenant.id=}")
+    content_exists: bool = db.query(
+        db.query(Content).filter(Content.id == job_in.content_id).exists()
+    ).scalar()
+    if not content_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+        )
+    job = Job(**job_in.dict())
+    db.add(job)
+    db.commit()
+    db.refresh(job)
     return job
 
 
