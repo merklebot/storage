@@ -15,5 +15,6 @@ class Content(Base):
     owner_id = Column("owner_id", Integer, ForeignKey("tenant.users.id"))
     owner = relationship(User, back_populates="contents")
     permissions = relationship("Permission", back_populates="content")
+    jobs = relationship("Job", back_populates="content")
 
     __table_args__ = ({"schema": "tenant"},)
