@@ -22,7 +22,7 @@ async def read_contents(
     db: SessionLocal = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
-    """Read contents the user owns or has permission to read.."""
+    """Read contents the user owns or has permission to read."""
 
     log.debug(f"read_contents, {current_user.id=}")
     contents_owner: list[Content] = (
