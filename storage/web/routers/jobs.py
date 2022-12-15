@@ -14,13 +14,13 @@ router = APIRouter()
 @router.get("/", response_model=list[schemas.Job])
 async def read_jobs(
     *,
-    db: dict = Depends(deps.get_db),
+    db: SessionLocal = Depends(deps.get_db),
     current_tenant: Tenant = Depends(deps.get_current_tenant),
 ):
     """Read jobs created by the tenant."""
 
     log.debug(f"read_jobs, {current_tenant.id=}")
-    jobs = db.query(Job).all()
+    jobs: list[Job] = db.query(Job).all()
     return jobs
 
 
