@@ -15,7 +15,6 @@ class KeyUpdate(KeyBase):
 
 class KeyInDBBase(KeyBase):
     id: int
-    aes_key: str
     owner_id: int
 
     class Config:
