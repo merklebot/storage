@@ -18,6 +18,7 @@ class ContentInDBBase(ContentBase):
     id: int
     origin: AnyHttpUrl
     ipfs_cid: str | None = None
+    encrypted_file_cid: str | None = None
     owner_id: int | None = None
 
     class Config:
