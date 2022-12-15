@@ -94,19 +94,3 @@ async def webhook(
     db.commit()
     db.refresh(job)
     return job
-
-
-@router.patch("/{job_id}", response_model=schemas.Job)
-async def update_job(
-    *, db: dict = Depends(deps.get_fake_db), job_id: int, job_in: schemas.JobUpdate
-):
-    log.debug(f"update_job, {job_id=}, {job_in=}")
-    if job_id not in db["jobs"]:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
-        )
-    job = db["jobs"][job_id]
-    log.debug(job)
-    job.update({k: v for k, v in job_in.dict().items() if v is not None})
-    db["jobs"][job_id] = job
-    return job
