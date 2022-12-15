@@ -56,31 +56,44 @@ async def create_job(
     return job
 
 
-@router.get("/{job_id}", response_model=schemas.Job)
-async def read_job_by_id(*, db: dict = Depends(deps.get_fake_db), job_id: int):
-    log.debug(f"read_job_by_id, {job_id=}")
-    try:
-        return db["jobs"][job_id]
-    except KeyError:
+@router.get(
+    "/{job_id}",
+    response_model=schemas.Job,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
+)
+async def read_job_by_id(
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_tenant: Tenant = Depends(deps.get_current_tenant),
+    job_id: int,
+):
+    """Read a certain job."""
+
+    log.debug(f"read_job_by_id, {job_id=}, {current_tenant.id=}")
+    job: Job | None = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
         )
+    return job
 
 
 @router.post("/{job_id}/webhooks/result", response_model=schemas.Job)
-async def mark_job_finished(
-    *, db: dict = Depends(deps.get_fake_db), job_id: int, job_result: schemas.JobResult
+async def webhook(
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    job_id: int,
+    job_result: schemas.JobResult,
 ):
-    log.debug(f"read_job_by_id, {job_id=}")
-    try:
-        job = db["jobs"][job_id]
-        job.update({"status": job_result.status, "result": job_result.result})
-        db["jobs"][job_id] = job
-        return job
-    except KeyError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
-        )
+    """For internal purposes only, don't use it."""
+
+    log.debug(f"webhook, {job_id=}, {job_result=}")
+    job = db.query(Job).filter(Job.id == job_id).first()
+    job.status = job_result.status
+    job.config = {**dict(job.config), **dict(result=job_result.result)}
+    db.commit()
+    db.refresh(job)
+    return job
 
 
 @router.patch("/{job_id}", response_model=schemas.Job)
