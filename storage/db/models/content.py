@@ -11,6 +11,7 @@ class Content(Base):
 
     id = Column("id", Integer, primary_key=True, index=True)
     ipfs_cid = Column("ipfs_cid", String(256), nullable=True)
+    encrypted_file_cid = Column("encrypted_file_cid", String(256), nullable=True)
     origin = Column("origin", URLType, nullable=True)
     owner_id = Column("owner_id", Integer, ForeignKey("tenant.users.id"))
     owner = relationship(User, back_populates="contents")
