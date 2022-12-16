@@ -23,7 +23,7 @@ Assuming we are in the repository root directory.
 1. Run local database and IPFS node
 
     ```console
-    docker compose up db kubo
+    docker compose up postgres kubo
     ```
 
 1. Launch service instance
@@ -49,7 +49,7 @@ Assuming we are in the repository root directory and cluster leader Docker conte
     ```bash
     ...
     IPFS_HTTP_PROVIDER=http://kubo_kubo:5001
-    POSTGRES_SERVER=storage_db
+    POSTGRES_SERVER=storage_postgres
     ```
 
 1. Connect to swam leader
@@ -75,6 +75,6 @@ Assuming we are in the repository root directory and cluster leader Docker conte
     ```console
     $ docker service ls
     ID             NAME              MODE         REPLICAS   IMAGE                            PORTS
-    6zw0odgoqjuf   storage_db        replicated   1/1        postgres:15
+    6zw0odgoqjuf   storage_postgres  replicated   1/1        postgres:15
     met55xby5gmf   storage_storage   replicated   1/1        ghcr.io/merklebot/storage:main
     ```

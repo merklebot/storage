@@ -6,7 +6,7 @@ services:
     command:
       - "/storage/start.sh"
 
-  db:
+  postgres:
     image: postgres:15
     environment:
       - POSTGRES_SERVER
