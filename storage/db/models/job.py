@@ -7,14 +7,14 @@ from sqlalchemy.orm import relationship
 from storage.db.base_class import Base
 
 
-class JobKind(enum.Enum):
+class JobKind(str, enum.Enum):
     ENCRYPT = "encrypt"
     DECRYPT = "decrypt"
     REPLICATE = "replicate"
     RESTORE = "restore"
 
 
-class JobStatus(enum.Enum):
+class JobStatus(str, enum.Enum):
     CREATED = "created"
     ACCEPTED = "accepted"
     REJECTED = "rejected"

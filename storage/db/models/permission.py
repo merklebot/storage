@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 from storage.db.base_class import Base
 
 
-class PermissionKind(enum.Enum):
+class PermissionKind(str, enum.Enum):
     READ = "read"
 
 
