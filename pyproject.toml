@@ -23,6 +23,7 @@ alembic = "^1.8.1"
 tenacity = "^8.1.0"
 typeguard = "^2.13.3"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+bcrypt = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"
