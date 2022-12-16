@@ -11,6 +11,7 @@ from starlette.background import BackgroundTask
 
 from storage.config import settings
 from storage.db.models import Content, Permission, User
+from storage.db.models.content import ContentAvailability
 from storage.db.models.permission import PermissionKind
 from storage.db.session import SessionLocal
 from storage.logging import log
@@ -101,6 +102,7 @@ async def create_content(
     content = Content(
         origin=content_in.origin,
         ipfs_cid=response.json()["Hash"],
+        availability=ContentAvailability.INSTANT,
         owner_id=current_user.id,
     )
     db.add(content)
@@ -178,6 +180,7 @@ async def delete_content(
     "/{content_id}/download",
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
+        status.HTTP_410_GONE: {"description": "Permanently unavailable"},
         status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Storage Unavailable"},
     },
 )
@@ -207,6 +210,20 @@ async def download_content_file(
     if current_user.id != content.owner_id and not permission:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+    if content.availability == ContentAvailability.ABSENT:
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="Permanently unavailable",
+        )
+    if content.availability == ContentAvailability.ARCHIVE:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Archived")
+    if content.availability == ContentAvailability.ENCRYPTED:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Encrypted")
+    if content.availability != ContentAvailability.INSTANT:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unavailable by unknown reason",
         )
     fd = tempfile.NamedTemporaryFile()
     ipfs_provider_url = urlparse(settings.IPFS_HTTP_PROVIDER)
