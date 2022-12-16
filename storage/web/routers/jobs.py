@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 
 from storage.db.models import Content, Job
+from storage.db.models.job import JobStatus
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
 from storage.logging import log
@@ -49,7 +50,7 @@ async def create_job(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
         )
-    job = Job(**job_in.dict())
+    job = Job(**job_in.dict(), status=JobStatus.CREATED)
     db.add(job)
     db.commit()
     db.refresh(job)

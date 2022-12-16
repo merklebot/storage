@@ -9,7 +9,6 @@ from storage.db.models.job import JobKind, JobStatus
 class JobBase(BaseModel):
     content_id: int
     kind: JobKind
-    status: JobStatus = JobStatus.CREATED
     config: Any
 
 
@@ -28,6 +27,7 @@ class JobUpdate(create_partial_model(JobBase)):
 
 class JobInDBBase(JobBase):
     id: int
+    status: JobStatus = JobStatus.CREATED
 
     class Config:
         orm_mode = True
