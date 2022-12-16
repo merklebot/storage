@@ -20,15 +20,15 @@ class CustodyClient:
                 key = await resp.json()
                 return key
 
-    async def start_content_encryption(self, content: Content, key: Key, job_id):
-        print(content.ipfs_cid)
+    async def start_content_encryption(self, job_id, aes_key, ipfs_cid):
+        print(ipfs_cid)
         async with aiohttp.ClientSession(headers=self.headers) as session:
             async with session.post(
                 f"{self.url}/content/methods/process_encryption",
                 headers=self.headers,
                 json={
-                    "original_cid": content.ipfs_cid,
-                    "aes_key": key.aes_key,
+                    "original_cid": ipfs_cid,
+                    "aes_key": aes_key,
                     "webhook_url": f"{settings.SELF_URL}/jobs/{job_id}/webhooks/result",
                 },
             ) as resp:
