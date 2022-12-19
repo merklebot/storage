@@ -19,7 +19,7 @@ class CustodyClient:
                 key = await resp.json()
                 return key
 
-    async def start_content_encryption(self, job_id, aes_key, ipfs_cid):
+    async def start_content_encryption(self, tenant, job_id, aes_key, ipfs_cid):
         print(ipfs_cid)
         async with aiohttp.ClientSession(headers=self.headers) as session:
             async with session.post(
@@ -28,12 +28,15 @@ class CustodyClient:
                 json={
                     "original_cid": ipfs_cid,
                     "aes_key": aes_key,
-                    "webhook_url": f"{settings.SELF_URL}/jobs/{job_id}/webhooks/result",
+                    "webhook_url": (
+                        f"http://{tenant}.{settings.SELF_URL}"
+                        f"/jobs/{job_id}/webhooks/result"
+                    ),
                 },
             ) as resp:
                 print(resp.status)
 
-    async def start_content_decryption(self, job_id, aes_key, ipfs_cid):
+    async def start_content_decryption(self, tenant, job_id, aes_key, ipfs_cid):
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{self.url}/content/methods/process_decryption",
@@ -41,7 +44,10 @@ class CustodyClient:
                 json={
                     "original_cid": ipfs_cid,
                     "aes_key": aes_key,
-                    "webhook_url": f"{settings.SELF_URL}/jobs/{job_id}/webhooks/result",
+                    "webhook_url": (
+                        f"http://{tenant}.{settings.SELF_URL}"
+                        f"/jobs/{job_id}/webhooks/result"
+                    ),
                 },
             ) as resp:
                 print(resp.status)
