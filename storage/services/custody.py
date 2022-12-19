@@ -1,7 +1,6 @@
 import aiohttp
 
 from storage.config import settings
-from storage.db.models import Content, Key
 
 
 class CustodyClient:
@@ -34,14 +33,14 @@ class CustodyClient:
             ) as resp:
                 print(resp.status)
 
-    async def start_content_decryption(self, content: Content, key: Key, job_id):
+    async def start_content_decryption(self, job_id, aes_key, ipfs_cid):
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{self.url}/content/methods/process_decryption",
                 headers=self.headers,
                 json={
-                    "original_cid": content.ipfs_cid,
-                    "aes_key": key.aes_key,
+                    "original_cid": ipfs_cid,
+                    "aes_key": aes_key,
                     "webhook_url": f"{settings.SELF_URL}/jobs/{job_id}/webhooks/result",
                 },
             ) as resp:
