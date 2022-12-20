@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.exceptions import HTTPException
 
-from storage.db.models import Content, Job
-from storage.db.models.job import JobStatus
+from storage.db.models import Content, Job, Key
+from storage.db.models.job import JobKind, JobStatus
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
+from storage.encryption import encrypt
 from storage.logging import log
 from storage.schemas import job as schemas
 from storage.web import deps
@@ -30,12 +31,14 @@ async def read_jobs(
     status_code=status.HTTP_201_CREATED,
     response_description="Created",
     responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Bad request"},
         status.HTTP_404_NOT_FOUND: {"description": "Not Found"},
     },
     response_model=schemas.Job,
 )
 async def create_job(
     *,
+    background_tasks: BackgroundTasks,
     db: SessionLocal = Depends(deps.get_db),
     current_tenant: Tenant = Depends(deps.get_current_tenant),
     job_in: schemas.JobCreate,
@@ -43,17 +46,58 @@ async def create_job(
     """Order a new job."""
 
     log.debug(f"create_job, {job_in=}, {current_tenant.id=}")
-    content_exists: bool = db.query(
-        db.query(Content).filter(Content.id == job_in.content_id).exists()
-    ).scalar()
-    if not content_exists:
+    content: Content | None = (
+        db.query(Content).filter(Content.id == job_in.content_id).first()
+    )
+    if not content:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
         )
+    match job_in.kind:
+        case JobKind.ENCRYPT:
+            key: Key | None = (
+                db.query(Key).filter(Key.id == job_in.config["keyId"]).first()
+            )
+            if not key:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Key not found"
+                )
+            if content.owner_id != key.owner_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Content and key owners are different",
+                )
+        case JobKind.DECRYPT:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="ToDo",
+            )
+        case JobKind.REPLICATE:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="ToDo",
+            )
+        case JobKind.RESTORE:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="ToDo",
+            )
     job = Job(**job_in.dict(), status=JobStatus.CREATED)
     db.add(job)
     db.commit()
     db.refresh(job)
+    match job_in.kind:
+        case JobKind.ENCRYPT:
+            print(f"{current_tenant.host=}")
+            background_tasks.add_task(
+                encrypt, current_tenant.host, job.id, key.aes_key, content.ipfs_cid
+            )
+        case JobKind.DECRYPT:
+            ...
+        case JobKind.REPLICATE:
+            ...
+        case JobKind.RESTORE:
+            ...
     return job
 
 
@@ -90,7 +134,9 @@ async def webhook(
 
     log.debug(f"webhook, {job_id=}, {job_result=}")
     job = db.query(Job).filter(Job.id == job_id).first()
-    job.status = job_result.status
+    job.status = (
+        JobStatus.COMPLETE if job_result.status == "finished" else JobStatus.FAILED
+    )
     job.config = {**dict(job.config), **dict(result=job_result.result)}
     db.commit()
     db.refresh(job)

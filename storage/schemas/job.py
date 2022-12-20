@@ -13,7 +13,7 @@ class JobBase(BaseModel):
 
 
 class JobResult(BaseModel):
-    status: JobStatus
+    status: str
     result: dict | None = None
 
 
