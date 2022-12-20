@@ -3,6 +3,7 @@ version: "3.8"
 services:
   storage:
     build: .
+    env_file: .env.local
     volumes:
       - ./storage:/storage/storage
     ports:

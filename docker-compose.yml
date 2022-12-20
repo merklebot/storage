@@ -2,7 +2,6 @@ version: "3.8"
 
 services:
   storage:
-    env_file: .env
     command:
       - "/storage/start.sh"
 

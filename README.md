@@ -12,12 +12,11 @@ Archive storage is an external service that can replicate and restore content fr
 
 Assuming we are in the repository root directory.
 
-1. Set `.env` variables
+1. Load environment variables
 
-    ```bash
+    ```console
     ...
-    IPFS_HTTP_PROVIDER=http://localhost:5001
-    POSTGRES_SERVER=localhost
+    export $(cat .env.local | xargs)
     ```
 
 1. Run local database and IPFS node
@@ -44,12 +43,11 @@ Assuming we are in the repository root directory.
 
 Assuming we are in the repository root directory and cluster leader Docker context is available locally by `merklebot` name.
 
-1. Set `.env` variables
+1. Load environment variables
 
-    ```bash
+    ```console
     ...
-    IPFS_HTTP_PROVIDER=http://kubo_kubo:5001
-    POSTGRES_SERVER=storage_postgres
+    export $(cat .env.prod | xargs)
     ```
 
 1. Connect to swam leader
