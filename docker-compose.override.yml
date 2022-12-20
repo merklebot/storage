@@ -21,8 +21,21 @@ services:
   custody:
     image: ghcr.io/merklebot/custody:main
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_SERVER}/custody
+      - DATABASE_URL=postgresql://custody:custody@custody_postgres/custody
       - CRUST_MNEMONIC=
       - IPFS_ADDRESS=/dns4/kubo/tcp/5001
     ports:
       - 8001:8000
+    entrypoint: >
+      sh -c "
+        sleep 3 &&
+        /bin/bash start.sh
+      "
+
+  custody_postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_SERVER=custody_postgres
+      - POSTGRES_USER=custody
+      - POSTGRES_PASSWORD=custody
+      - POSTGRES_DB=custody
