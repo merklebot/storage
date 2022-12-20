@@ -8,6 +8,10 @@ services:
       - ./storage:/storage/storage
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
+    networks:
+      default:
+        aliases:
+          - "dev.storage"
 
   postgres:
     ports:

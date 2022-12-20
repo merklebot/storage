@@ -59,13 +59,13 @@ Assuming we are in the repository root directory and cluster leader Docker conte
 1. Remove an old version
 
     ```console
-    docker stack rm storage
+    docker stack rm $DOCKER_SWARM_STACK_NAME
     ```
 
 1. Run a new version
 
-    ```consol
-    docker stack deploy -c docker-compose.yml -c docker-compose.prod.yml storage
+    ```console
+    docker stack deploy -c docker-compose.yml -c docker-compose.prod.yml $DOCKER_SWARM_STACK_NAME
     ```
 
 1. Check services are ok (at least 1 replica is running)
