@@ -7,5 +7,6 @@ async def encrypt(tenant, job_id, aes_key, ipfs_cid) -> None:
     await custody.start_content_encryption(tenant, job_id, aes_key, ipfs_cid)
 
 
-async def decrypt():
-    ...
+async def decrypt(tenant, job_id, aes_key, ipfs_cid) -> None:
+    log.debug(f"{tenant=}, {job_id=}, {aes_key=}, {ipfs_cid=}")
+    await custody.start_content_decryption(tenant, job_id, aes_key, ipfs_cid)

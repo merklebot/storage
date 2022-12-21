@@ -5,7 +5,7 @@ from storage.db.models import Content, Job, Key
 from storage.db.models.job import JobKind, JobStatus
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
-from storage.encryption import encrypt
+from storage.encryption import decrypt, encrypt
 from storage.logging import log
 from storage.schemas import job as schemas
 from storage.web import deps
@@ -54,7 +54,7 @@ async def create_job(
             status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
         )
     match job_in.kind:
-        case JobKind.ENCRYPT:
+        case JobKind.ENCRYPT | JobKind.DECRYPT:
             key: Key | None = (
                 db.query(Key).filter(Key.id == job_in.config["keyId"]).first()
             )
@@ -67,11 +67,6 @@ async def create_job(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Content and key owners are different",
                 )
-        case JobKind.DECRYPT:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="ToDo",
-            )
         case JobKind.REPLICATE:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -93,7 +88,9 @@ async def create_job(
                 encrypt, current_tenant.host, job.id, key.aes_key, content.ipfs_cid
             )
         case JobKind.DECRYPT:
-            ...
+            background_tasks.add_task(
+                decrypt, current_tenant.host, job.id, key.aes_key, content.ipfs_cid
+            )
         case JobKind.REPLICATE:
             ...
         case JobKind.RESTORE:
