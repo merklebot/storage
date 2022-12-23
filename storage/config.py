@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     SELF_URL: str
 
+    WEB3_STORAGE_MANAGER_URL: AnyHttpUrl
+
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
