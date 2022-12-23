@@ -1,6 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.exceptions import HTTPException
 
+from storage.archive import replicate
 from storage.db.models import Content, Job, Key
 from storage.db.models.job import JobKind, JobStatus
 from storage.db.models.tenant import Tenant
@@ -68,10 +69,7 @@ async def create_job(
                     detail="Content and key owners are different",
                 )
         case JobKind.REPLICATE:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="ToDo",
-            )
+            await replicate(content.encrypted_file_cid)
         case JobKind.RESTORE:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
