@@ -68,6 +68,12 @@ async def create_job(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Content and key owners are different",
                 )
+        case JobKind.REPLICATE | JobKind.RESTORE:
+            if not content.encrypted_file_cid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Content is not encrypted",
+                )
     job = Job(**job_in.dict(), status=JobStatus.CREATED)
     db.add(job)
     db.commit()
