@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.exceptions import HTTPException
 
-from storage.archive import replicate
+from storage.archive import replicate, restore
 from storage.db.models import Content, Job, Key
 from storage.db.models.job import JobKind, JobStatus
 from storage.db.models.tenant import Tenant
@@ -71,10 +71,7 @@ async def create_job(
         case JobKind.REPLICATE:
             await replicate(content.encrypted_file_cid)
         case JobKind.RESTORE:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="ToDo",
-            )
+            await restore(content.encrypted_file_cid)
     job = Job(**job_in.dict(), status=JobStatus.CREATED)
     db.add(job)
     db.commit()
@@ -89,8 +86,6 @@ async def create_job(
             background_tasks.add_task(
                 decrypt, current_tenant.host, job.id, key.aes_key, content.ipfs_cid
             )
-        case JobKind.RESTORE:
-            ...
     return job
 
 

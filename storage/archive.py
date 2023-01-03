@@ -27,3 +27,17 @@ async def replicate(cid: str) -> None:
             },
         )
         log.debug(f"{response=}")
+
+
+async def restore(cid: str) -> None:
+    log.debug(f"{cid=}")
+    async with httpx.AsyncClient(
+        base_url=settings.IPFS_HTTP_PROVIDER,
+    ) as client:
+        response = await client.post(
+            "/api/v0/pin/add",
+            params={
+                "arg": cid,
+            },
+        )
+        log.debug(f"{response=}")
