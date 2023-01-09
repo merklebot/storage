@@ -4,7 +4,7 @@ from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types import URLType
 
-from storage.db.base_class import Base
+from storage.db.base_class import Base, TimestampMixin
 from storage.db.models.user import User
 
 
@@ -15,7 +15,7 @@ class ContentAvailability(str, enum.Enum):
     ABSENT = "absent"
 
 
-class Content(Base):
+class Content(TimestampMixin, Base):
     __tablename__ = "contents"
 
     id = Column("id", Integer, primary_key=True, index=True)

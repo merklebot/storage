@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi_camelcase import CamelModel as BaseModel
 from pydantic import AnyHttpUrl
 
@@ -23,6 +25,8 @@ class ContentInDBBase(ContentBase):
     encrypted_file_cid: str | None = None
     availability: ContentAvailability
     owner_id: int | None = None
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True

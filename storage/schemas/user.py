@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi_camelcase import CamelModel as BaseModel
 
 
@@ -15,6 +17,8 @@ class UserUpdate(UserBase):
 
 class UserInDBBase(UserBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
