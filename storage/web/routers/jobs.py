@@ -128,10 +128,19 @@ async def webhook(
 
     log.debug(f"webhook, {job_id=}, {job_result=}")
     job = db.query(Job).filter(Job.id == job_id).first()
+    content = db.query(Content).filter(Content.id == job.content_id).first()
+
     job.status = (
         JobStatus.COMPLETE if job_result.status == "finished" else JobStatus.FAILED
     )
     job.config = {**dict(job.config), **dict(result=job_result.result)}
+    match job.kind:
+        case JobKind.ENCRYPT:
+            if job_result.status == "finished":
+                content.encrypted_file_cid = job_result.result["encrypted_cid"]
+                db.commit()
+                db.refresh(content)
+
     db.commit()
     db.refresh(job)
     return job
