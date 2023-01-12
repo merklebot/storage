@@ -138,6 +138,7 @@ async def webhook(
         case JobKind.ENCRYPT:
             if job_result.status == "finished":
                 content.encrypted_file_cid = job_result.result["encrypted_cid"]
+                content.encrypted_file_size = int(job_result.result["encrypted_size"])
                 db.commit()
                 db.refresh(content)
 
