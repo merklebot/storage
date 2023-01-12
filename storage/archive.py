@@ -23,7 +23,7 @@ async def restore(cid: str) -> None:
         base_url=settings.IPFS_HTTP_PROVIDER,
     ) as client:
         response = await client.post(
-            "/api/v0/pin/add",
+            "/api/v0/pin/remote/add",
             params={
                 "arg": cid,
             },

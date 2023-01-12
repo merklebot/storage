@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     LOGURU_LEVEL: str = "INFO"
     IPFS_HTTP_PROVIDER: AnyHttpUrl
+    ENCRYPTED_IPFS_HTTP_PROVIDER: AnyHttpUrl
 
     CUSTODY_URL: str
     CUSTODY_API_KEY: str

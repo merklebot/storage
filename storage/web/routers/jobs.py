@@ -3,6 +3,7 @@ from fastapi.exceptions import HTTPException
 
 from storage.archive import replicate, restore
 from storage.db.models import Content, Job, Key
+from storage.db.models.content import ContentAvailability
 from storage.db.models.job import JobKind, JobStatus
 from storage.db.models.tenant import Tenant
 from storage.db.session import SessionLocal
@@ -141,6 +142,11 @@ async def webhook(
             if job_result.status == "finished":
                 content.encrypted_file_cid = job_result.result["encrypted_cid"]
                 content.encrypted_file_size = int(job_result.result["encrypted_size"])
+                db.commit()
+                db.refresh(content)
+        case JobKind.DECRYPT:
+            if job_result.status == "finished":
+                content.availability = ContentAvailability.INSTANT
                 db.commit()
                 db.refresh(content)
 
