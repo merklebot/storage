@@ -20,12 +20,12 @@ async def replicate(cid: str, filesize: int) -> None:
 async def restore(cid: str) -> None:
     log.debug(f"{cid=}")
     async with httpx.AsyncClient(
-        base_url=settings.IPFS_HTTP_PROVIDER,
+        base_url=settings.ENCRYPTED_IPFS_HTTP_PROVIDER,
     ) as client:
         response = await client.post(
-            "/api/v0/pin/remote/add",
+            "/api/v0/pin/add",
             params={
-                "arg": cid,
+                "arg": f"/ipfs/{cid}",
             },
         )
         log.debug(f"{response=}")
