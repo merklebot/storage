@@ -89,7 +89,9 @@ async def create_job(
                 decrypt, current_tenant.host, job.id, key.aes_key, content.ipfs_cid
             )
         case JobKind.REPLICATE:
-            background_tasks.add_task(replicate, content.encrypted_file_cid)
+            background_tasks.add_task(
+                replicate, content.encrypted_file_cid, content.encrypted_file_size
+            )
         case JobKind.RESTORE:
             background_tasks.add_task(restore, content.encrypted_file_cid)
     return job
