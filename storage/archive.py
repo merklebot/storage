@@ -5,16 +5,15 @@ from storage.logging import log
 
 
 async def replicate(cid: str, filesize: int) -> None:
+    request_data = {
+        "cid": cid,
+        "filesize": filesize,
+    }
+    log.debug(f"web3_storage_manager content.add request {request_data}")
     async with httpx.AsyncClient(
         base_url=settings.WEB3_STORAGE_MANAGER_URL,
     ) as client:
-        response = await client.post(
-            "/content.add",
-            data={
-                "cid": cid,
-                "fileSize": filesize,
-            },
-        )
+        response = await client.post("/content.add", json=request_data)
         log.debug(f"{response=}")
 
 
