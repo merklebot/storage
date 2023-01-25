@@ -1,7 +1,5 @@
-import io
-
 import httpx
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse, StreamingResponse
 
@@ -12,6 +10,7 @@ from storage.db.models.permission import PermissionKind
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import content as schemas
+from storage.upload import process_data_from_origin
 from storage.web import deps
 
 router = APIRouter()
@@ -65,6 +64,7 @@ async def read_contents(
 async def create_content(
     *,
     db: SessionLocal = Depends(deps.get_db),
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(deps.get_current_user),
     content_in: schemas.ContentCreate,
 ):
@@ -86,24 +86,20 @@ async def create_content(
             f"/contents/{content_id}",
             status_code=status.HTTP_303_SEE_OTHER,
         )
-    async with httpx.AsyncClient() as client:
-        r = await client.get(content_in.origin)
-        content_file = io.BytesIO(r.content)
-    async with httpx.AsyncClient(
-        base_url=settings.IPFS_HTTP_PROVIDER,
-    ) as client:
-        response = await client.post(
-            "/api/v0/add", files={"upload-files": content_file}
-        )
+
     content = Content(
         origin=content_in.origin,
-        ipfs_cid=response.json()["Hash"],
-        availability=ContentAvailability.INSTANT,
+        availability=ContentAvailability.PENDING,
         owner_id=current_user.id,
     )
     db.add(content)
     db.commit()
     db.refresh(content)
+
+    background_tasks.add_task(
+        process_data_from_origin, origin=content.origin, content_id=content.id, db=db
+    )
+
     return content
 
 
