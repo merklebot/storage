@@ -9,6 +9,7 @@ from storage.db.models.user import User
 
 
 class ContentAvailability(str, enum.Enum):
+    PENDING = "pending"
     INSTANT = "instant"
     ENCRYPTED = "encrypted"
     ARCHIVE = "archive"
