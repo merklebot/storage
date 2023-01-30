@@ -1,0 +1,6 @@
+site_name: MerkleBot Storage
+repo_name: merklebot/storage
+repo_url: https://github.com/merklebot/storage
+nav:
+  - MerkleBot Storage: index.md
+  - Job: job.md
