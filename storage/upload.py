@@ -17,7 +17,7 @@ async def process_data_from_origin(origin: str, content_id: int, db) -> None:
         base_url=settings.IPFS_HTTP_PROVIDER,
     ) as client:
         response = await client.post(
-            "/api/v0/add", files={"upload-files": content_file}
+            "/api/v0/add", params={'cid-version': 1}, files={"upload-files": content_file}
         )
 
     content: Content = db.query(Content).filter(Content.id == content_id).first()

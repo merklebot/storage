@@ -78,7 +78,7 @@ async def create_content(
                 base_url=settings.IPFS_HTTP_PROVIDER,
         ) as client:
             response = await client.post(
-                "/api/v0/add", files={"upload-files": file_in.file}
+                "/api/v0/add", params={'cid-version': 1}, files={"upload-files": file_in.file}
             )
         content = Content(
             filename=file_in.filename,
