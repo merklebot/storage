@@ -67,7 +67,7 @@ async def create_content(
         background_tasks: BackgroundTasks,
         current_user: User = Depends(deps.get_current_user),
         file_in: UploadFile | None = None,
-        requst: Request
+        request: Request
 ):
     """Create content or get a redirect to an existing one if the same was created
     earlier.
@@ -92,7 +92,7 @@ async def create_content(
         db.refresh(content)
         return content
 
-    body = await requst.json()
+    body = await request.json()
     content_in = schemas.ContentCreate(**body)
 
     if content_in:
