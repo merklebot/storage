@@ -20,7 +20,9 @@ class Content(TimestampMixin, Base):
     __tablename__ = "contents"
 
     id = Column("id", Integer, primary_key=True, index=True)
+    filename = Column("filename", String, nullable=True)
     ipfs_cid = Column("ipfs_cid", String(256), nullable=True)
+    ipfs_file_size = Column("ipfs_file_size", BigInteger, nullable=True)
     encrypted_file_cid = Column("encrypted_file_cid", String(256), nullable=True)
     encrypted_file_size = Column("encrypted_file_size", BigInteger, nullable=True)
     availability = Column("availability", Enum(ContentAvailability), nullable=False)

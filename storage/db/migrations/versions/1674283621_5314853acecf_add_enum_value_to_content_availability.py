@@ -17,7 +17,12 @@ depends_on = None
 
 
 def upgrade():
-    op.execute("ALTER TYPE contentavailability ADD VALUE 'PENDING'")
+    try:
+        # false error sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedObject) type "contentavailability" does not exist
+        op.execute('COMMIT')
+        op.execute("ALTER TYPE contentavailability ADD VALUE 'PENDING'")
+    except:
+        pass
 
 
 @for_each_tenant_schema

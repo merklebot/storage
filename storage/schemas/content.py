@@ -20,8 +20,10 @@ class ContentUpdate(ContentBase):
 
 class ContentInDBBase(ContentBase):
     id: int
-    origin: AnyHttpUrl
+    filename: str| None = None
+    origin: AnyHttpUrl|None = None
     ipfs_cid: str | None = None
+    ipfs_file_size: int| None = None
     encrypted_file_cid: str | None = None
     availability: ContentAvailability
     owner_id: int | None = None
