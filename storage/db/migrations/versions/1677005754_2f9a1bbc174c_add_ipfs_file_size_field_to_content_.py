@@ -5,16 +5,14 @@ Revises: 5314853acecf
 Create Date: 2023-02-21 21:55:54.484757
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 from storage.db.multitenancy import for_each_tenant_schema
 
-
 # revision identifiers, used by Alembic.
-revision = '2f9a1bbc174c'
-down_revision = '5314853acecf'
+revision = "2f9a1bbc174c"
+down_revision = "5314853acecf"
 branch_labels = None
 depends_on = None
 
@@ -31,4 +29,3 @@ def upgrade(schema: str):
 @for_each_tenant_schema
 def downgrade(schema: str):
     op.drop_column("contents", "ipfs_file_size", schema=schema)
-

@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter, BackgroundTasks, Depends, status, File, UploadFile, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, UploadFile, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse, StreamingResponse
 
@@ -18,9 +18,9 @@ router = APIRouter()
 
 @router.get("/", response_model=list[schemas.Content])
 async def read_contents(
-        *,
-        db: SessionLocal = Depends(deps.get_db),
-        current_user: User = Depends(deps.get_current_user),
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """Read contents the user owns or has permission to read."""
 
@@ -30,11 +30,11 @@ async def read_contents(
     )
     read_permissions: list[Permission] = (
         db.query(Permission)
-            .filter(
+        .filter(
             Permission.assignee_id == current_user.id,
             Permission.kind == PermissionKind.READ,
         )
-            .all()
+        .all()
     )
     contents_permissed_ids: list[int] = [
         permission.content_id for permission in read_permissions
@@ -62,12 +62,12 @@ async def read_contents(
     },
 )
 async def create_content(
-        *,
-        db: SessionLocal = Depends(deps.get_db),
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(deps.get_current_user),
-        file_in: UploadFile | None = None,
-        request: Request
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(deps.get_current_user),
+    file_in: UploadFile | None = None,
+    request: Request,
 ):
     """Create content or get a redirect to an existing one if the same was created
     earlier.
@@ -75,17 +75,19 @@ async def create_content(
     if file_in:
         log.debug(f"create_content, {file_in.filename=}")
         async with httpx.AsyncClient(
-                base_url=settings.IPFS_HTTP_PROVIDER,
+            base_url=settings.IPFS_HTTP_PROVIDER,
         ) as client:
             response = await client.post(
-                "/api/v0/add", params={'cid-version': 1}, files={"upload-files": file_in.file}
+                "/api/v0/add",
+                params={"cid-version": 1},
+                files={"upload-files": file_in.file},
             )
         content = Content(
             filename=file_in.filename,
-            ipfs_cid = response.json()["Hash"],
-            ipfs_file_size = int(response.json()["Size"]),
-            availability = ContentAvailability.INSTANT,
-            owner_id=current_user.id
+            ipfs_cid=response.json()["Hash"],
+            ipfs_file_size=int(response.json()["Size"]),
+            availability=ContentAvailability.INSTANT,
+            owner_id=current_user.id,
         )
         db.add(content)
         db.commit()
@@ -99,11 +101,11 @@ async def create_content(
         log.debug(f"create_content, {content_in.origin=}, {current_user.id=}")
         content_id: int | None = (
             db.query(Content.id)
-                .filter(
+            .filter(
                 Content.owner_id == current_user.id,
                 Content.origin == content_in.origin,
             )
-                .scalar()
+            .scalar()
         )
         if content_id:
             return RedirectResponse(
@@ -121,7 +123,10 @@ async def create_content(
         db.refresh(content)
 
         background_tasks.add_task(
-            process_data_from_origin, origin=content.origin, content_id=content.id, db=db
+            process_data_from_origin,
+            origin=content.origin,
+            content_id=content.id,
+            db=db,
         )
 
         return content
@@ -133,10 +138,10 @@ async def create_content(
     responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
 )
 async def read_content_by_id(
-        *,
-        db: SessionLocal = Depends(deps.get_db),
-        current_user: User = Depends(deps.get_current_user),
-        content_id: int,
+    *,
+    db: SessionLocal = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    content_id: int,
 ):
     """Read content the user owns or has permission to read."""
 
@@ -148,12 +153,12 @@ async def read_content_by_id(
         )
     permission: Permission = (
         db.query(Permission)
-            .filter(
+        .filter(
             Permission.assignee_id == current_user.id,
             Permission.content_id == content.id,
             Permission.kind == PermissionKind.READ,
         )
-            .first()
+        .first()
     )
     if current_user.id != content.owner_id and not permission:
         raise HTTPException(
@@ -170,10 +175,10 @@ async def read_content_by_id(
     responses={status.HTTP_404_NOT_FOUND: {"description": "Not Found"}},
 )
 async def delete_content(
-        *,
-        db: dict = Depends(deps.get_db),
-        current_user: User = Depends(deps.get_current_user),
-        content_id: int,
+    *,
+    db: dict = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    content_id: int,
 ):
     """Delete content the user owns."""
 
@@ -201,10 +206,10 @@ async def delete_content(
     },
 )
 async def download_content_file(
-        *,
-        db: dict = Depends(deps.get_db),
-        current_user: User = Depends(deps.get_current_user),
-        content_id: int,
+    *,
+    db: dict = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    content_id: int,
 ):
     """Read content file the user owns or has permission to read."""
 
@@ -216,12 +221,12 @@ async def download_content_file(
         )
     permission: Permission = (
         db.query(Permission)
-            .filter(
+        .filter(
             Permission.assignee_id == current_user.id,
             Permission.content_id == content.id,
             Permission.kind == PermissionKind.READ,
         )
-            .first()
+        .first()
     )
     if current_user.id != content.owner_id and not permission:
         raise HTTPException(
@@ -269,8 +274,8 @@ async def download_content_file(
                             [
                                 chr(byte_code)
                                 for byte_code in start_bytes[
-                                                 SIZE_OFFSET: SIZE_OFFSET + SZ_SIZE - 1
-                                                 ]
+                                    SIZE_OFFSET : SIZE_OFFSET + SZ_SIZE - 1
+                                ]
                             ]
                         )
                         filesize = int(filesize_oct_str, 8)
@@ -281,8 +286,8 @@ async def download_content_file(
                     if current_length > filesize + HEADER_LENGTH:
                         yield bytes(
                             chunk[
-                            : (filesize + HEADER_LENGTH)
-                              - (current_length - len(chunk))
+                                : (filesize + HEADER_LENGTH)
+                                - (current_length - len(chunk))
                             ]
                         )
                         break
