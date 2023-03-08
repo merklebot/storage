@@ -247,7 +247,7 @@ async def download_content_file(
             detail="Unavailable by unknown reason",
         )
 
-    filename = content.origin.split("/")[-1]
+    filename = content.filename or content.origin.split("/")[-1]
     url = f"{settings.IPFS_HTTP_PROVIDER}/api/v0/get?arg={content.ipfs_cid}"
     print(url)
     client = httpx.AsyncClient()
