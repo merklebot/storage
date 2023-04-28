@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     SQLALCHEMY_DATABASE_URI: PostgresDsn | None = None
 
+    INSTANT_STORAGE_REGION: str
+    INSTANT_STORAGE_ENDPOINT: str
+    INSTANT_STORAGE_ACCESS_KEY: str
+    INSTANT_STORAGE_SECRET_ACCESS_KEY: str
+    INSTANT_STORAGE_BUCKET_NAME: str
+
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: str | None, values: dict[str, Any]) -> Any:
         if isinstance(v, str):

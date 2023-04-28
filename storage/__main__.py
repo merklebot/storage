@@ -30,28 +30,7 @@ def pre_start():
     log.info("initialization complete")
 
 
-if __name__ == "__main__":
-    setup_logging()
-
-    parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--pre-start", help="execute preliminary routine and exit", action="store_true"
-    )
-    group.add_argument(
-        "--tenant-create", help="creates new tenant", dest="new_tenant_name"
-    )
-    group.add_argument(
-        "--create-default-tenant",
-        help="creates new tenant with tenant_default name",
-        action="store_true",
-    )
-    group.add_argument(
-        "--create-api-key-for-tenant",
-        help="create API key token for a tenant",
-        dest="existing_tenant_name",
-    )
-    args = parser.parse_args()
+def main(args):
     if args.pre_start:
         pre_start()
         exit(0)
@@ -69,11 +48,13 @@ if __name__ == "__main__":
         except ProgrammingError as e:
             if isinstance(e.orig, DuplicateSchema):
                 log.warning(f"tenant creation failure, {tenant.name=}, {e=}")
-                exit(0)
+                return
+                # exit(0)
             log.error(f"tenant creation failure, {tenant.name=}, {e=}")
             raise
         log.info(f"tenant created, {tenant.name=}, {tenant.schema=}, {tenant.host=}")
-        exit(0)
+        return
+        # exit(0)
     if args.existing_tenant_name:
         with with_db() as database:
             tenant = (
@@ -93,7 +74,8 @@ if __name__ == "__main__":
             database.add(token)
             database.commit()
         print(api_key)
-        exit(0)
+        return api_key
+        # exit(0)
 
     app = FastAPI(
         title="MerkleBot Storage",
@@ -123,3 +105,28 @@ if __name__ == "__main__":
     setup_logging()  # should be called after uvicorn server instantiation
 
     server.run()
+
+
+if __name__ == "__main__":
+    setup_logging()
+
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--pre-start", help="execute preliminary routine and exit", action="store_true"
+    )
+    group.add_argument(
+        "--tenant-create", help="creates new tenant", dest="new_tenant_name"
+    )
+    group.add_argument(
+        "--create-default-tenant",
+        help="creates new tenant with tenant_default name",
+        action="store_true",
+    )
+    group.add_argument(
+        "--create-api-key-for-tenant",
+        help="create API key token for a tenant",
+        dest="existing_tenant_name",
+    )
+    args = parser.parse_args()
+    main(args)

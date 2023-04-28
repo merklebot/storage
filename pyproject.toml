@@ -25,6 +25,10 @@ typeguard = "^2.13.3"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 bcrypt = "^4.0.1"
 aiosmtplib = "^2.0.1"
+requests = "^2.28.2"
+pytest = "^7.2.2"
+aioboto3 = "^11.1.0"
+ipfs-cid = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.12.0"

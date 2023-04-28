@@ -6,6 +6,7 @@ from storage.config import settings
 from storage.db.models import Content
 from storage.db.models.content import ContentAvailability
 from storage.logging import log
+from storage.services.instant_storage import upload_data_to_instant_storage
 
 
 async def process_data_from_origin(origin: str, content_id: int, db) -> None:
@@ -18,9 +19,12 @@ async def process_data_from_origin(origin: str, content_id: int, db) -> None:
     ) as client:
         response = await client.post(
             "/api/v0/add",
-            params={"cid-version": 1},
+            params={"cid-version": 1, "only-hash": True},
             files={"upload-files": content_file},
         )
+    content_file.seek(0)
+    data = content_file.read()
+    await upload_data_to_instant_storage(data=data, ipfs_cid=response.json()["Hash"])
 
     content: Content = db.query(Content).filter(Content.id == content_id).first()
     content.ipfs_cid = response.json()["Hash"]

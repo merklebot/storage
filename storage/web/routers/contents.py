@@ -10,6 +10,7 @@ from storage.db.models.permission import PermissionKind
 from storage.db.session import SessionLocal
 from storage.logging import log
 from storage.schemas import content as schemas
+from storage.services.instant_storage import upload_data_to_instant_storage
 from storage.upload import process_data_from_origin
 from storage.web import deps
 
@@ -79,12 +80,16 @@ async def create_content(
         ) as client:
             response = await client.post(
                 "/api/v0/add",
-                params={"cid-version": 1},
+                params={"cid-version": 1, "only-hash": True},
                 files={"upload-files": file_in.file},
             )
+        file_in.file.seek(0)
+        data = file_in.file.read()
+        ipfs_cid = response.json()["Hash"]
+        await upload_data_to_instant_storage(data=data, ipfs_cid=ipfs_cid)
         content = Content(
             filename=file_in.filename,
-            ipfs_cid=response.json()["Hash"],
+            ipfs_cid=ipfs_cid,
             ipfs_file_size=int(response.json()["Size"]),
             availability=ContentAvailability.INSTANT,
             owner_id=current_user.id,
