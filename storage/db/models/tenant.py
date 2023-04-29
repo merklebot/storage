@@ -27,5 +27,6 @@ class Tenant(Base):
     schema = Column("schema", String(256), nullable=False, unique=True)
     host = Column("host", String(256), nullable=False, unique=True)
     tokens = relationship(TokenForTenant, back_populates="owner")
+    owner_email = Column("owner_email", String(256), nullable=True, unique=True)
 
     __table_args__ = ({"schema": "shared"},)
