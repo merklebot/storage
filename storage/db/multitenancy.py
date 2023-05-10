@@ -29,7 +29,7 @@ def get_tenant_specific_metadata():
     return meta
 
 
-def tenant_create(tenant: Tenant) -> None:
+def tenant_create(tenant: Tenant) -> Tenant:
     with with_db(tenant.schema) as db:
         db.add(tenant)
         db.execute(CreateSchema(tenant.schema))

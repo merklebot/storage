@@ -2,7 +2,9 @@ from casdoor import CasdoorSDK
 from fastapi import APIRouter, Request, status
 
 from storage.config import settings
+from storage.db.models import User
 from storage.db.models.tenant import Tenant, Token
+from storage.db.multitenancy import tenant_create
 from storage.db.session import with_db
 from storage.web.routers import (
     contents,
@@ -35,7 +37,7 @@ api_router.include_router(tokens.router, prefix="/tokens", tags=["Tokens"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 
 
-@api_router.get("/signin")
+@api_router.post("/signin")
 async def process_tenant_signin(request: Request):
 
     sdk = CasdoorSDK(
@@ -51,7 +53,14 @@ async def process_tenant_signin(request: Request):
     user = sdk.parse_jwt_token(token)
     with with_db() as db:
         tenant = db.query(Tenant).filter(Tenant.owner_email == user["email"]).first()
-
+    if not tenant:
+        tenant_name = user["username"]
+        tenant = Tenant(
+            name=tenant_name,
+            schema=tenant_name,
+            host=tenant_name.replace("_", "-"),
+        )
+        tenant = tenant_create(tenant)
     api_key = create_api_key()
     token = Token(
         hashed_token=get_api_key_hash(api_key),
@@ -60,6 +69,12 @@ async def process_tenant_signin(request: Request):
     with with_db() as db:
         db.add(token)
         db.commit()
+    with with_db(tenant.tenant_schema) as db:
+        tenant_user = db.query(User).first()
+        if not tenant_user:
+            tenant_user = User()
+            db.add(tenant_user)
+            db.commit()
 
     return {"status": "ok", "tenant_name": tenant.name, "tenant_key": api_key}
 
