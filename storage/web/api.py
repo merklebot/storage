@@ -69,7 +69,7 @@ async def process_tenant_signin(request: Request):
     with with_db() as db:
         db.add(token)
         db.commit()
-    with with_db(tenant.tenant_schema) as db:
+    with with_db(tenant.schema) as db:
         tenant_user = db.query(User).first()
         if not tenant_user:
             tenant_user = User()
