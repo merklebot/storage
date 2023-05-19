@@ -1,15 +1,6 @@
 import enum
 
-from sqlalchemy import (
-    TIMESTAMP,
-    BigInteger,
-    Column,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-    func,
-)
+from sqlalchemy import BigInteger, Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types import URLType
 
@@ -35,9 +26,9 @@ class Content(TimestampMixin, Base):
     encrypted_file_cid = Column("encrypted_file_cid", String(256), nullable=True)
     encrypted_file_size = Column("encrypted_file_size", BigInteger, nullable=True)
     availability = Column("availability", Enum(ContentAvailability), nullable=False)
-    instant_till = Column(
-        "instant_till", Column(TIMESTAMP, nullable=False, server_default=func.now())
-    )
+    # instant_till = Column(
+    #     "instant_till", Column(TIMESTAMP, nullable=False, server_default=func.now())
+    # )
     origin = Column("origin", URLType, nullable=True)
     owner_id = Column("owner_id", Integer, ForeignKey("tenant.users.id"))
     owner = relationship(User, back_populates="contents")
