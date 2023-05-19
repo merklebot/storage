@@ -52,9 +52,9 @@ async def process_tenant_signin(request: Request):
     token = sdk.get_oauth_token(code)
     user = sdk.parse_jwt_token(token)
     with with_db() as db:
-        tenant = db.query(Tenant).filter(Tenant.owner_email == user["email"]).first()
+        tenant = db.query(Tenant).filter(Tenant.name == user["name"]).first()
     if not tenant:
-        tenant_name = user["username"]
+        tenant_name = user["name"]
         tenant = Tenant(
             name=tenant_name,
             schema=tenant_name,
