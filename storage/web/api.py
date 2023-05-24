@@ -49,8 +49,8 @@ async def process_tenant_signin(request: Request):
         application_name=settings.CASDOOR_APPLICATION_NAME,
     )
     code = request.query_params.get("code")
-    token = sdk.get_oauth_token(code)
-    user = sdk.parse_jwt_token(token)
+    access_token = sdk.get_oauth_token(code)
+    user = sdk.parse_jwt_token(access_token)
     with with_db() as db:
         tenant = db.query(Tenant).filter(Tenant.name == user["name"]).first()
     if not tenant:
@@ -76,7 +76,12 @@ async def process_tenant_signin(request: Request):
             db.add(tenant_user)
             db.commit()
 
-    return {"status": "ok", "tenant_name": tenant.name, "tenant_key": api_key}
+    return {
+        "status": "ok",
+        "tenant_name": tenant.name,
+        "tenant_key": api_key,
+        "access_token": access_token,
+    }
 
 
 tags_metadata = [
