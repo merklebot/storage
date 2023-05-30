@@ -28,5 +28,6 @@ class Tenant(Base):
     host = Column("host", String(256), nullable=False, unique=True)
     tokens = relationship(TokenForTenant, back_populates="owner")
     owner_email = Column("owner_email", String(256), nullable=True, unique=True)
+    merklebot_user_id = Column("merklebot_user_id", String, nullable=True)
 
     __table_args__ = ({"schema": "shared"},)
