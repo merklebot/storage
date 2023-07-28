@@ -5,10 +5,10 @@ services:
     command:
       - "/storage/start.sh"
 
-  postgres:
-    image: postgres:15
-    environment:
-      - POSTGRES_SERVER
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
+#  postgres:
+#    image: postgres:15
+#    environment:
+#      - POSTGRES_SERVER
+#      - POSTGRES_USER
+#      - POSTGRES_PASSWORD
+#      - POSTGRES_DB

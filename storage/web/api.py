@@ -1,6 +1,7 @@
 from casdoor import CasdoorSDK
 from fastapi import APIRouter, Request, status
 
+import storage.web.routers.internal.internal as internal_router
 from storage.config import settings
 from storage.db.models import User
 from storage.db.models.tenant import Tenant, Token
@@ -37,9 +38,11 @@ api_router.include_router(tokens.router, prefix="/tokens", tags=["Tokens"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 
 
+api_router.include_router(internal_router.router, prefix="/internal")
+
+
 @api_router.post("/signin")
 async def process_tenant_signin(request: Request):
-
     sdk = CasdoorSDK(
         endpoint=settings.CASDOOR_ENDPOINT,
         client_id=settings.CASDOOR_CLIENT_ID,
@@ -51,6 +54,7 @@ async def process_tenant_signin(request: Request):
     code = request.query_params.get("code")
     access_token = sdk.get_oauth_token(code)
     user = sdk.parse_jwt_token(access_token)
+
     with with_db() as db:
         tenant = db.query(Tenant).filter(Tenant.name == user["name"]).first()
     if not tenant:

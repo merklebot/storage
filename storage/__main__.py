@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ from storage.db.models.tenant import Tenant, Token
 from storage.db.multitenancy import tenant_create
 from storage.db.session import SessionLocal, engine, with_db
 from storage.logging import log, setup_logging
+from storage.services.content_processor import start_content_processor
 from storage.web.api import api_router, tags_metadata
 from storage.web.security import create_api_key, get_api_key_hash
 
@@ -31,6 +33,11 @@ def pre_start():
 
 
 def main(args):
+    if args.content_processor:
+        asyncio.run(start_content_processor())
+
+        exit(0)
+
     if args.pre_start:
         pre_start()
         exit(0)
@@ -112,6 +119,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
+
+    group.add_argument(
+        "--content-processor",
+        help="start processor for files that should be encrypted and archived",
+        action="store_true",
+    )
+
     group.add_argument(
         "--pre-start", help="execute preliminary routine and exit", action="store_true"
     )
@@ -128,5 +142,6 @@ if __name__ == "__main__":
         help="create API key token for a tenant",
         dest="existing_tenant_name",
     )
+
     args = parser.parse_args()
     main(args)

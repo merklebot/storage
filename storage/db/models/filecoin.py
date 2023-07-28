@@ -1,0 +1,20 @@
+from sqlalchemy import ARRAY, Column, Integer, String
+
+from storage.db.base_class import Base, TimestampMixin
+
+
+class Car(TimestampMixin, Base):
+    __tablename__ = "cars"
+
+    id = Column("id", Integer, primary_key=True, index=True)
+    pack_uuid = Column("pack_uuid", String(64), nullable=False, index=True)
+    tenant_name = Column("tenant_name", String(64), nullable=False, index=True)
+    original_content_cids = Column("content_cids", ARRAY(String), nullable=True)
+    original_contents_size = Column("contents_size", Integer, nullable=True, index=True)
+
+    root_cid = Column("root_cid", String(64), nullable=True, index=True)
+    comm_p = Column("comm_p", String(64), nullable=True, index=True)
+    car_size = Column("car_size", Integer, nullable=True, index=True)
+    piece_size = Column("piece_size", Integer, nullable=True, index=True)
+
+    __table_args__ = ({"schema": "shared"},)

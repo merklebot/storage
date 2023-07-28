@@ -13,6 +13,7 @@ services:
           - "dev.${DOCKER_SWARM_STACK_NAME}_storage"
           - "droneselfie.${DOCKER_SWARM_STACK_NAME}_storage"
 
+
     deploy:
       labels:
         - traefik.enable=true
@@ -27,21 +28,21 @@ services:
         # - traefik.http.middlewares.strip-storage.stripprefix.prefixes=${SERVER_ROOT_PATH}
         # - traefik.http.routers.storage.middlewares=strip-storage@docker
 
-  postgres:
-    volumes:
-      - postgres:/var/lib/postgresql/data
-    environment:
-      PGDATA: /var/lib/postgresql/data/pgdata
-    networks:
-      - internal
-    deploy:
-      placement:
-        constraints:
-          - node.labels.postgres == true
+#  postgres:
+#    volumes:
+#      - postgres:/var/lib/postgresql/data
+#    environment:
+#      PGDATA: /var/lib/postgresql/data/pgdata
+#    networks:
+#      - internal
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.labels.postgres == true
 
-volumes:
-  postgres:
-    external: true
+#volumes:
+#  postgres:
+#    external: true
 
 networks:
   internal:

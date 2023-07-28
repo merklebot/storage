@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy import func
 
+from storage.config import settings
 from storage.db.models import Token, User
 from storage.db.models.tenant import Tenant, TokenForTenant
 from storage.db.session import with_db
@@ -24,6 +25,16 @@ db = {
 
 def get_fake_db() -> Generator:
     yield db
+
+
+def get_app_by_admin_token(request: Request):
+    request_token = request.headers.get("Authorization")
+    if request_token == settings.ADMIN_TOKEN:
+        return True
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
 
 
 def get_tenant(request: Request) -> Tenant:

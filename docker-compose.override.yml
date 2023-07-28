@@ -13,57 +13,57 @@ services:
         aliases:
           - "dev.storage"
 
-  postgres:
-    ports:
-      - 5432:5432
+#  postgres:
+#    ports:
+#      - 5432:5432
 
-  kubo:
-    image: ipfs/kubo:v0.15.0
-    ports:
-      - 5001:5001
+#  kubo:
+#    image: ipfs/kubo:v0.15.0
+#    ports:
+#      - 5001:5001
 
-  custody:
-    image: ghcr.io/merklebot/custody:main
-    environment:
-      - DATABASE_URL=postgresql://custody:custody@custody_postgres/custody
-      - CRUST_MNEMONIC=
-      - IPFS_ADDRESS=/dns4/kubo/tcp/5001
-    ports:
-      - 8001:8000
-    entrypoint: >
-      sh -c "
-        sleep 3 &&
-        /bin/bash start.sh
-      "
+#  custody:
+#    image: ghcr.io/merklebot/custody:main
+#    environment:
+#      - DATABASE_URL=postgresql://custody:custody@custody_postgres/custody
+#      - CRUST_MNEMONIC=
+#      - IPFS_ADDRESS=/dns4/kubo/tcp/5001
+#    ports:
+#      - 8001:8000
+#    entrypoint: >
+#      sh -c "
+#        sleep 3 &&
+#        /bin/bash start.sh
+#      "
+#
+#  custody_postgres:
+#    image: postgres:15
+#    environment:
+#      - POSTGRES_SERVER=custody_postgres
+#      - POSTGRES_USER=custody
+#      - POSTGRES_PASSWORD=custody
+#      - POSTGRES_DB=custody
 
-  custody_postgres:
-    image: postgres:15
-    environment:
-      - POSTGRES_SERVER=custody_postgres
-      - POSTGRES_USER=custody
-      - POSTGRES_PASSWORD=custody
-      - POSTGRES_DB=custody
-
-  web3_storage_manager:
-    image: ghcr.io/merklebot/web3-storage-manager:main
-    ports:
-      - 8002:8000
-    environment:
-      - CRUST_SEED=
-      - POSTGRES_SERVER=postgres_web3_storage_manager
-      - POSTGRES_USER=merklebot
-      - POSTGRES_PASSWORD=merklebot
-      - POSTGRES_DB=web3storagemanager
-    entrypoint: >
-      sh -c "
-        sleep 3 &&
-        /bin/bash start.sh
-      "
-
-  postgres_web3_storage_manager:
-    image: postgres:15
-    environment:
-      - POSTGRES_SERVER=postgres_web3_storage_manager
-      - POSTGRES_USER=merklebot
-      - POSTGRES_PASSWORD=merklebot
-      - POSTGRES_DB=web3storagemanager
+#  web3_storage_manager:
+#    image: ghcr.io/merklebot/web3-storage-manager:main
+#    ports:
+#      - 8002:8000
+#    environment:
+#      - CRUST_SEED=
+#      - POSTGRES_SERVER=postgres_web3_storage_manager
+#      - POSTGRES_USER=merklebot
+#      - POSTGRES_PASSWORD=merklebot
+#      - POSTGRES_DB=web3storagemanager
+#    entrypoint: >
+#      sh -c "
+#        sleep 3 &&
+#        /bin/bash start.sh
+#      "
+#
+#  postgres_web3_storage_manager:
+#    image: postgres:15
+#    environment:
+#      - POSTGRES_SERVER=postgres_web3_storage_manager
+#      - POSTGRES_USER=merklebot
+#      - POSTGRES_PASSWORD=merklebot
+#      - POSTGRES_DB=web3storagemanager
