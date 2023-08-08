@@ -7,8 +7,8 @@ from storage.db.models.tenant import Tenant
 from storage.db.session import with_db
 from storage.logging import log
 
-MAX_FILES_SIZE = 1073741824 * 2  # 25GiB
-MIN_FILES_SIZE = 1073741824 * 1  # 16GiB
+MAX_FILES_SIZE = 1073741824 * 30  # 30GiB
+MIN_FILES_SIZE = 1073741824 * 20  # 16GiB
 
 
 class ContentPack:
@@ -56,11 +56,12 @@ async def start_content_processor():
             contents = (
                 tenant_db.query(Content)
                 .filter(
-                    Content.encrypted_file_cid is None,
+                    Content.encrypted_file_cid == None,  # noqa
                     Content.created_at >= datetime.datetime(2023, 5, 25, 0, 0, 0, 0),
                 )
                 .all()
             )
+        print("found content", len(contents))
         for content in contents:
             if content_pack.can_add_content(content):
                 content_pack.add_content(content)
