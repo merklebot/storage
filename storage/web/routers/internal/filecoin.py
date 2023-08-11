@@ -17,8 +17,6 @@ class CarCreatedSchema(BaseModel):
     comm_p: str
     car_size: int
     piece_size: int
-    original_content_cids: list[str]
-    original_contents_size: int
     encrypted_contents: list[dict]
 
 
@@ -32,6 +30,13 @@ async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
             "tenant_name": car.tenant_name,
             "contents": car.original_content_cids,
         }
+
+
+@router.get(".getPreparedCars")
+async def get_prepared_cars(authed=Depends(deps.get_app_by_admin_token)):
+    with with_db() as db:
+        cars = db.query(Car).filter(Car.comm_p.isnot(None)).all()
+    return {"status": "ok", "cars": cars}
 
 
 @router.post(".carCreated")
@@ -51,9 +56,9 @@ async def car_created_callback(
         content_encrypted_cid_updates[
             encrypted_content["original_cid"]
         ] = encrypted_content["encrypted_cid"]
-        content_encrypted_size_updates[
-            encrypted_content["original_cid"]
-        ] = encrypted_content["encrypted_size"]
+        content_encrypted_size_updates[encrypted_content["original_cid"]] = int(
+            encrypted_content["encrypted_size"]
+        )
 
     with with_db(tenant_schema=car.tenant_name) as tenant_db:
         tenant_db.query(Content).filter(
@@ -61,10 +66,10 @@ async def car_created_callback(
         ).update(
             {
                 Content.encrypted_file_cid: case(
-                    content_encrypted_cid_updates, value=Content.Content.ipfs_cid
+                    content_encrypted_cid_updates, value=Content.ipfs_cid
                 ),
                 Content.encrypted_file_size: case(
-                    content_encrypted_size_updates, value=Content.Content.ipfs_cid
+                    content_encrypted_size_updates, value=Content.ipfs_cid
                 ),
             },
             synchronize_session=False,
