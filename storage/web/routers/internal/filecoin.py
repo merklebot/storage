@@ -35,7 +35,18 @@ async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
 @router.get(".getPreparedCars")
 async def get_prepared_cars(authed=Depends(deps.get_app_by_admin_token)):
     with with_db() as db:
-        cars = db.query(Car).filter(Car.comm_p.isnot(None)).all()
+        cars = [
+            {
+                "pack_uuid": car.pack_uuid,
+                "contents_size": car.original_contents_size,
+                "root_cid": car.root_cid,
+                "comm_p": car.comm_p,
+                "car_size": car.car_size,
+                "piece_size": car.piece_size,
+            }
+            for car in db.query(Car).filter(Car.comm_p.isnot(None)).all()
+        ]
+
     return {"status": "ok", "cars": cars}
 
 
