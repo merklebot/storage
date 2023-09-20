@@ -15,6 +15,7 @@ class ContentCreate(ContentBase):
 
 
 class ContentRestoreRequest(BaseModel):
+    restore_days: int
     webhook_url: AnyHttpUrl | None
 
 

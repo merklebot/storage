@@ -19,6 +19,7 @@ def upgrade() -> None:
     op.create_table(
         "restore_requests",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("restore_days", sa.Integer(), nullable=False),
         sa.Column("tenant_name", sa.String(), nullable=False),
         sa.Column("content_id", sa.Integer, nullable=False),
         sa.Column("status", sa.String(), nullable=False),
