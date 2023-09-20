@@ -1,10 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_camelcase import CamelModel as BaseModel
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import select
+from sqlalchemy.sql import func
 
+from storage.db.models import Content
 from storage.db.models.tenant import Tenant
 from storage.db.models.token import Token
 from storage.db.models.user import User
 from storage.db.session import with_db
+from storage.schemas import content as content_schemas
+from storage.services.instant_storage import (
+    generate_access_link_for_instant_storage_data,
+)
 from storage.web import deps
 from storage.web.security import create_access_token, create_api_key, get_api_key_hash
 
@@ -49,6 +58,66 @@ async def list_tokens(
             )
         tokens = db.query(Token).filter(Token.owner_id == user.id).all()
     return {"status": "ok", "tokens": tokens}
+
+
+@router.get(".getStats")
+async def get_stats(
+    tenant_name: str, user_id: int, authed=Depends(deps.get_app_by_admin_token)
+):
+    with with_db(tenant_schema=tenant_name) as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Tenant doesn't exist"
+            )
+        contents_number = db.query(Content).filter(Content.owner_id == user.id).count()
+        contents_funcs = (
+            db.query(func.sum(Content.ipfs_file_size).label("sum_ipfs_file_size"))
+            .filter(Content.owner_id == user.id)
+            .first()
+        )
+    return {
+        "contents_number": contents_number,
+        "contents_size": contents_funcs["sum_ipfs_file_size"],
+    }
+
+
+@router.get(".getContentDownloadLink")
+async def get_content_download_link(
+    tenant_name: str,
+    user_id: int,
+    content_id: int,
+    authed=Depends(deps.get_app_by_admin_token),
+):
+    with with_db(tenant_schema=tenant_name) as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Tenant doesn't exist"
+            )
+        content: Content = (
+            db.query(Content)
+            .filter(Content.id == content_id, Content.owner_id == user.id)
+            .first()
+        )
+
+    presigned_url, expires_in = await generate_access_link_for_instant_storage_data(
+        content.ipfs_cid
+    )
+    return {"status": "ok", "url": presigned_url, "expires_in": expires_in}
+
+
+@router.get(".listContents", response_model=Page[content_schemas.Content])
+async def list_contents(
+    tenant_name: str, user_id: int, authed=Depends(deps.get_app_by_admin_token)
+):
+    with with_db(tenant_schema=tenant_name) as db:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Tenant doesn't exist"
+            )
+        return paginate(db, select(Content).filter(Content.owner_id == user.id))
 
 
 @router.post(".createToken")

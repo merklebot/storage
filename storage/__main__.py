@@ -3,6 +3,7 @@ import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 from psycopg2.errors import DuplicateSchema
 from sqlalchemy.exc import ProgrammingError
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -98,6 +99,7 @@ def main(args):
         allow_headers=["*"],
     )
     app.include_router(api_router)
+    add_pagination(app)
 
     server = Server(
         Config(

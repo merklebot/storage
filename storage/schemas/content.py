@@ -14,6 +14,10 @@ class ContentCreate(ContentBase):
     origin: AnyHttpUrl
 
 
+class ContentRestoreRequest(BaseModel):
+    webhook_url: AnyHttpUrl | None
+
+
 class ContentUpdate(ContentBase):
     pass
 

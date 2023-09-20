@@ -43,7 +43,6 @@ def get_tenant(request: Request) -> Tenant:
     host_without_port = request.headers["host"].split(":", 1)[0]
     url = urlparse(host_without_port)
     subdomain = url.path.split(".", 1)[0]
-
     with with_db(None) as db:
         tenant = db.query(Tenant).filter(Tenant.host == subdomain).one_or_none()
 

@@ -8,7 +8,7 @@ from storage.db.session import with_db
 from storage.logging import log
 
 MAX_FILES_SIZE = 1073741824 * 30  # 30GiB
-MIN_FILES_SIZE = 1073741824 * 20  # 16GiB
+MIN_FILES_SIZE = 1073741824 * 16  # 16GiB
 
 
 class ContentPack:

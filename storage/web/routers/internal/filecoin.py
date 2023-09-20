@@ -1,9 +1,10 @@
+import httpx
 from fastapi import APIRouter, Depends
 from fastapi_camelcase import CamelModel as BaseModel
 from sqlalchemy.sql import case
 
-from storage.db.models.content import Content
-from storage.db.models.filecoin import Car
+from storage.db.models.content import Content, ContentAvailability
+from storage.db.models.filecoin import Car, RestoreRequest, RestoreRequestStatus
 from storage.db.session import with_db
 from storage.web import deps
 
@@ -20,6 +21,16 @@ class CarCreatedSchema(BaseModel):
     encrypted_contents: list[dict]
 
 
+class StartRestoreProcessSchema(BaseModel):
+    worker_instance: str
+
+
+class FinishRestoreProcessSchema(BaseModel):
+    worker_instance: str
+    restore_request_id: int
+    status: str
+
+
 @router.get(".getCarToProcess")
 async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
     with with_db() as db:
@@ -30,6 +41,83 @@ async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
             "tenant_name": car.tenant_name,
             "contents": car.original_content_cids,
         }
+
+
+@router.post(".startRestoreProcess")
+async def start_restore_process(
+    start_restore_process_request: StartRestoreProcessSchema,
+    authed=Depends(deps.get_app_by_admin_token),
+):
+    with with_db() as db:
+        try:
+            restore_request = (
+                db.query(RestoreRequest)
+                .filter(RestoreRequest.status == RestoreRequestStatus.PENDING)
+                .with_for_update()
+                .one()
+            )
+        except Exception as e:
+            print(e.__traceback__)
+            return {}
+        restore_request.worker_instance = start_restore_process_request.worker_instance
+        restore_request.status = RestoreRequestStatus.PROCESSING
+        db.commit()
+        db.refresh(restore_request)
+
+    with with_db(tenant_schema=restore_request.tenant_name) as db:
+        content = (
+            db.query(Content).filter(Content.id == restore_request.content_id).first()
+        )
+    return {"original_cid": content.ipfs_cid, "restore_request_id": restore_request.id}
+
+
+@router.post(".finishRestoreProcess")
+async def finish_restore_process(
+    finish_restore_process_request: FinishRestoreProcessSchema,
+    authed=Depends(deps.get_app_by_admin_token),
+):
+    with with_db() as db:
+        restore_request = (
+            db.query(RestoreRequest)
+            .filter(
+                RestoreRequest.id == finish_restore_process_request.restore_request_id
+                and RestoreRequest.worker_instance
+                == finish_restore_process_request.worker_instance
+            )
+            .with_for_update()
+            .one()
+        )
+        restore_request.status = finish_restore_process_request.status
+        db.commit()
+        db.refresh(restore_request)
+
+    if finish_restore_process_request.status == RestoreRequestStatus.DONE:
+        with with_db(tenant_schema=restore_request.tenant_name) as db:
+            content = (
+                db.query(Content)
+                .filter(Content.id == restore_request.content_id)
+                .first()
+            )
+            content.availability = ContentAvailability.INSTANT
+            db.commit()
+    if restore_request.webhook_url:
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    restore_request.webhook_url,
+                    json={
+                        "restore_status": finish_restore_process_request.status,
+                        "tenant_name": restore_request.tenant_name,
+                        "content_id": restore_request.content_id,
+                    },
+                )
+        except Exception as e:
+            print(e.__traceback__)
+            pass
+
+    return {
+        "status": "ok",
+    }
 
 
 @router.get(".getPreparedCars")
@@ -85,6 +173,7 @@ async def car_created_callback(
             },
             synchronize_session=False,
         )
+        tenant_db.commit()
 
     with with_db() as db:
         car_in_db = db.query(Car).filter(Car.pack_uuid == pack_uuid).first()
