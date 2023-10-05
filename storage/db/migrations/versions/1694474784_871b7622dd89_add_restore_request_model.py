@@ -22,6 +22,8 @@ def upgrade() -> None:
         sa.Column("restore_days", sa.Integer(), nullable=False),
         sa.Column("tenant_name", sa.String(), nullable=False),
         sa.Column("content_id", sa.Integer, nullable=False),
+        sa.Column("content_original_size", sa.BigInteger, nullable=False),
+        sa.Column("is_reported", sa.Boolean, nullable=True),
         sa.Column("status", sa.String(), nullable=False),
         sa.Column("worker_instance", sa.String(), nullable=True),
         sa.Column("webhook_url", sa.String(), nullable=True),

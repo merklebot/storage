@@ -1,4 +1,4 @@
-from sqlalchemy import ARRAY, BigInteger, Column, Integer, String
+from sqlalchemy import ARRAY, BigInteger, Boolean, Column, Integer, String
 
 from storage.db.base_class import Base, TimestampMixin
 
@@ -36,6 +36,10 @@ class RestoreRequest(TimestampMixin, Base):
 
     tenant_name = Column("tenant_name", String(64), nullable=False, index=True)
     content_id = Column("content_id", Integer, nullable=False, index=True)
+    is_reported = Column("is_reported", Boolean, nullable=True, index=True)
+    content_original_size = Column(
+        "content_original_size", BigInteger, nullable=False, index=True
+    )
     restore_days = Column("restore_days", Integer, nullable=False, index=True)
     status = Column("status", String(64), nullable=False, index=True)
     worker_instance = Column("worker_instance", String(64), nullable=True, index=True)

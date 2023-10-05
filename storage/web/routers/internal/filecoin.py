@@ -31,10 +31,14 @@ class FinishRestoreProcessSchema(BaseModel):
     status: str
 
 
+class CarsWithActiveDeals(BaseModel):
+    content_pack_ids: list[str]
+
+
 @router.get(".getCarToProcess")
 async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
     with with_db() as db:
-        car = db.query(Car).filter(Car.comm_p.is_(None)).first()
+        car = db.query(Car).filter(Car.comm_p.is_(None)).last()
     if car:
         return {
             "pack_uuid": car.pack_uuid,
@@ -183,4 +187,33 @@ async def car_created_callback(
         car_in_db.car_size = car_size
         db.commit()
 
+    return {"status": "ok"}
+
+
+@router.post(".setArchivedContents")
+async def setArchivedContents(
+    cars_active_deals: CarsWithActiveDeals, authed=Depends(deps.get_app_by_admin_token)
+):
+    with with_db() as db:
+        content_packs = (
+            db.query(Car)
+            .filter(Car.pack_uuid.in_(cars_active_deals.content_pack_ids))
+            .all()
+        )
+    for content_pack in content_packs:
+        print(content_pack.tenant_name)
+        if content_pack.tenant_name != "spot-infra":
+            continue
+        with with_db(tenant_schema=content_pack.tenant_name) as db:
+            contents = (
+                db.query(Content)
+                .filter(Content.ipfs_cid.in_(content_pack.original_content_cids))
+                .all()
+            )
+            for content in contents:
+                print(content.id)
+            db.query(Content).filter(
+                Content.ipfs_cid.in_(content_pack.original_content_cids)
+            ).update({Content.availability: ContentAvailability.ARCHIVE})
+            db.commit()
     return {"status": "ok"}

@@ -46,11 +46,18 @@ class ContentPack:
 
 async def start_content_processor():
     log.info("starting content processor...")
-
     with with_db() as db:
         tenants = db.query(Tenant).all()
+
     for tenant in tenants:
         content_pack = ContentPack()
+        prepared_cars = db.query(Car).filter(Car.tenant_name == tenant.schema).all()
+        content_in_packs = set()
+
+        for car in prepared_cars:
+            for content_cid in car.original_content_cids:
+                content_in_packs.add(content_cid)
+
         print(tenant.schema)
         with with_db(tenant_schema=tenant.schema) as tenant_db:
             contents = (
@@ -63,6 +70,8 @@ async def start_content_processor():
             )
         print("found content", len(contents))
         for content in contents:
+            if content.ipfs_cid in content_in_packs:
+                continue
             if content_pack.can_add_content(content):
                 content_pack.add_content(content)
             elif content_pack.is_enough_contents():
