@@ -102,7 +102,7 @@ async def get_content_download_link(
         )
 
     presigned_url, expires_in = await generate_access_link_for_instant_storage_data(
-        content.ipfs_cid
+        content.ipfs_cid, filename=content.filename
     )
     return {"status": "ok", "url": presigned_url, "expires_in": expires_in}
 

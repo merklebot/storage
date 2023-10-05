@@ -16,7 +16,7 @@ async def upload_data_to_instant_storage(data, ipfs_cid: str):
         )
 
 
-async def generate_access_link_for_instant_storage_data(ipfs_cid: str):
+async def generate_access_link_for_instant_storage_data(ipfs_cid: str, filename: str):
     expires_in = 3600
     async with aioboto3.Session().client(
         service_name="s3",
@@ -25,11 +25,18 @@ async def generate_access_link_for_instant_storage_data(ipfs_cid: str):
         aws_access_key_id=settings.INSTANT_STORAGE_ACCESS_KEY,
         aws_secret_access_key=settings.INSTANT_STORAGE_SECRET_ACCESS_KEY,
     ) as s3:
+        add_params = {}
+        if filename:
+            add_params = {
+                "ResponseContentDisposition": f"attachment; filename={filename}"
+            }
+
         res = await s3.generate_presigned_url(
             ClientMethod="get_object",
             Params={
                 "Bucket": settings.INSTANT_STORAGE_BUCKET_NAME,
                 "Key": f"{ipfs_cid}",
+                **add_params,
             },
             ExpiresIn=expires_in,
         )
