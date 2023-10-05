@@ -38,7 +38,7 @@ class CarsWithActiveDeals(BaseModel):
 @router.get(".getCarToProcess")
 async def get_car_to_process(authed=Depends(deps.get_app_by_admin_token)):
     with with_db() as db:
-        car = db.query(Car).filter(Car.comm_p.is_(None)).last()
+        car = db.query(Car).filter(Car.comm_p.is_(None)).order_by(Car.id).last()
     if car:
         return {
             "pack_uuid": car.pack_uuid,
