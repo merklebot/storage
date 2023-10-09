@@ -20,13 +20,13 @@ depends_on = None
 @for_each_tenant_schema
 def upgrade(schema: str):
     op.add_column(
-        "is_instant",
-        sa.Column("key", sa.Boolean, nullable=True, server_default="true"),
+        "contents",
+        sa.Column("is_instant", sa.Boolean, nullable=True, server_default="true"),
         schema=schema,
     )
     op.add_column(
-        "is_filecoin",
-        sa.Column("key", sa.Boolean, nullable=True, server_default="false"),
+        "contents",
+        sa.Column("is_filecoin", sa.Boolean, nullable=True, server_default="false"),
         schema=schema,
     )
 
