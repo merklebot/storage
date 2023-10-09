@@ -214,6 +214,11 @@ async def setArchivedContents(
                 print(content.id)
             db.query(Content).filter(
                 Content.ipfs_cid.in_(content_pack.original_content_cids)
-            ).update({Content.availability: ContentAvailability.ARCHIVE})
+            ).update(
+                {
+                    Content.availability: ContentAvailability.ARCHIVE,
+                    Content.is_filecoin: True,
+                }
+            )
             db.commit()
     return {"status": "ok"}

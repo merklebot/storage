@@ -30,6 +30,7 @@ async def process_data_from_origin(origin: str, content_id: int, db) -> None:
     content.ipfs_cid = response.json()["Hash"]
     content.ipfs_file_size = int(response.json()["Size"])
     content.availability = ContentAvailability.INSTANT
+    content.is_instant = True
     db.commit()
     db.refresh(content)
     log.debug(f"fetched {content=}")

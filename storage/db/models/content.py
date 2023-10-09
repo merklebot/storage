@@ -3,6 +3,7 @@ import enum
 from sqlalchemy import (
     TIMESTAMP,
     BigInteger,
+    Boolean,
     Column,
     Enum,
     ForeignKey,
@@ -39,6 +40,8 @@ class Content(TimestampMixin, Base):
     instant_till = Column(
         "instant_till", TIMESTAMP, nullable=True, server_default=func.now()
     )
+    is_instant = Column("is_instant", Boolean, nullable=True)
+    is_filecoin = Column("is_filecoin", Boolean, nullable=True)
 
     origin = Column("origin", URLType, nullable=True)
     owner_id = Column("owner_id", Integer, ForeignKey("tenant.users.id"))

@@ -31,6 +31,7 @@ class ContentInDBBase(ContentBase):
     ipfs_file_size: int | None = None
     encrypted_file_cid: str | None = None
     availability: ContentAvailability
+    is_instant: bool | None = None
     owner_id: int | None = None
     created_at: datetime
     updated_at: datetime

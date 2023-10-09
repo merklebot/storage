@@ -102,6 +102,7 @@ async def create_content(
             ipfs_cid=ipfs_cid,
             ipfs_file_size=int(response.json()["Size"]),
             availability=ContentAvailability.INSTANT,
+            is_instant=True,
             owner_id=current_user.id,
         )
         db.add(content)
