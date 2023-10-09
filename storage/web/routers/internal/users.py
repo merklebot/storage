@@ -29,6 +29,12 @@ class UserInfoSchema(BaseModel):
     user_id: int
 
 
+class RemoveTokenSchema(BaseModel):
+    tenant_name: str
+    user_id: int
+    token_id: int
+
+
 @router.post(".add")
 async def add_user(user: NewUserSchema, authed=Depends(deps.get_app_by_admin_token)):
     with with_db() as db:
@@ -140,3 +146,21 @@ async def create_token(
         db.refresh(token)
         access_token = create_access_token(token.id, api_key)
     return {"status": "ok", "access_token": access_token}
+
+
+@router.post(".removeToken")
+async def remove_token(
+    remove_token_req: RemoveTokenSchema, authed=Depends(deps.get_app_by_admin_token)
+):
+    with with_db(tenant_schema=remove_token_req.tenant_name) as db:
+        user = db.query(User).filter(User.id == remove_token_req.user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Tenant doesn't exist"
+            )
+
+        db.query(Token).filter(
+            Token.owner_id == user.id and Token.id == remove_token_req.token_id
+        ).delete()
+        db.commit()
+    return {"status": "ok"}
