@@ -159,8 +159,13 @@ async def remove_token(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Tenant doesn't exist"
             )
 
-        db.query(Token).filter(
-            Token.owner_id == user.id and Token.id == remove_token_req.token_id
-        ).delete()
+        token = (
+            db.query(Token)
+            .filter(
+                (Token.id == remove_token_req.token_id) and (Token.owner_id == user.id)
+            )
+            .first()
+        )
+        db.delete(token)
         db.commit()
     return {"status": "ok"}
