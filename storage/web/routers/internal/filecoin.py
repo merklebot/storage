@@ -202,8 +202,6 @@ async def setArchivedContents(
         )
     for content_pack in content_packs:
         print(content_pack.tenant_name)
-        if content_pack.tenant_name != "spot-infra":
-            continue
         with with_db(tenant_schema=content_pack.tenant_name) as db:
             contents = (
                 db.query(Content)
