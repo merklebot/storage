@@ -246,6 +246,7 @@ async def restore_content_file(
             restore_request = RestoreRequest(
                 tenant_name=tenant.name,
                 content_id=content.id,
+                content_original_size=content.ipfs_file_size,
                 restore_days=content_restore_request.restore_days,
                 status=RestoreRequestStatus.PENDING,
             )
